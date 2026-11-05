@@ -1,0 +1,7 @@
+{% if page.has_other_pages %}
+<nav class="pagination" aria-label="Страницы списка">
+  {% if page.has_previous %}<a class="button secondary" href="?{% if list_query %}{{ list_query }}&amp;{% endif %}page={{ page.previous_page_number }}" rel="prev"><span class="button-label">Назад</span></a>{% endif %}
+  <span>Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="button secondary" href="?{% if list_query %}{{ list_query }}&amp;{% endif %}page={{ page.next_page_number }}" rel="next"><span class="button-label">Далее</span></a>{% endif %}
+</nav>
+{% endif %}

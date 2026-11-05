@@ -1,0 +1,24 @@
+{% extends 'tseh/base.html' %}{% load display %}{% block title %}Сценарий цен · Цех{% endblock %}{% block content %}
+<header class="page-heading"><div><h1>Сценарий цен</h1><p>Сравните совокупное влияние нескольких цен на весь ассортимент.</p></div></header>
+<p class="fine">Все изменения применяются вместе после проверки. До подтверждения действующие цены и история сохраняются. Несохранённый сценарий не восстанавливается после закрытия или обновления страницы.</p>
+{% if source %}<p class="notice">Цены добавлены из <a href="{% url 'purchase-detail' source.pk %}">закупки от {{ source.purchase_date|date:'d.m.Y' }}</a>. {% if source_has_changes %}Удаление строки из сценария убирает только изменение цены: состав закупки и доли доставки сохраняются.{% else %}Все её цены уже действуют. Добавьте другое изменение ниже.{% endif %}</p>{% endif %}
+{% if need_ingredient %}<p class="notice">Сначала <a href="{% url 'ingredient-create' %}">добавьте сырьё или упаковку с первой ценой</a>.</p>{% endif %}
+<form method="post" id="scenario-form" data-preview-form>
+<button type="submit" name="intent" value="preview" hidden tabindex="-1" aria-hidden="true">Рассчитать сценарий</button>{% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
+<section aria-labelledby="scenario-rows-title"><h2 id="scenario-rows-title">Изменения цен</h2><p class="fine">Одна строка для каждой позиции. Новую цену вводите без доставки; цену с распределённой доставкой выберите из сохранённой закупки.</p>{{ formset.management_form }}{{ formset.non_form_errors }}
+{% for row in formset %}<fieldset class="panel form-panel purchase-line" data-scenario-row><legend>Изменение {{ forloop.counter }}{% if row.selected_ingredient %}: {{ row.selected_ingredient.name }}{% endif %}</legend>{{ row.non_field_errors }}<div class="form-grid">{% include 'tseh/_field.html' with field=row.ingredient %}{% include 'tseh/_field.html' with field=row.mode %}</div>
+<div data-scenario-mode="existing">
+<div class="form-actions"><button class="button secondary" type="submit" name="configure_line" value="{{ forloop.counter0 }}" formnovalidate><span class="button-label">Показать сохранённые цены</span></button></div>
+{% if row.saved_price.is_hidden %}{{ row.saved_price }}<p class="fine">Выберите позицию и нажмите «Показать сохранённые цены».</p>{% else %}{% include 'tseh/_field.html' with field=row.saved_price %}{% endif %}
+</div>
+<details class="replacement-price" data-scenario-mode="new" {% if row.mode.value != 'existing' or row.new_price_form.errors %}open{% endif %}><summary>Поля новой цены</summary><p class="fine">Содержимое упаковки укажите в базовой единице выбранной позиции: кг, л или шт.</p>{{ row.new_price_form.non_field_errors }}<div class="form-grid">{% for field in row.new_price_form.visible_fields %}{% if field.name == 'comment' or field.name == 'is_one_off' or field.name == 'confirm_zero' %}{% include 'tseh/_field.html' with field_class='wide' %}{% else %}{% include 'tseh/_field.html' %}{% endif %}{% endfor %}</div></details>
+<button class="button remove-line" type="submit" name="remove_line" value="{{ forloop.counter0 }}" formnovalidate><span class="button-label">Убрать изменение {{ forloop.counter }}</span></button></fieldset>{% endfor %}
+<button class="button secondary" type="submit" name="add_line" value="1" formnovalidate>{% include 'tseh/_icon_plus.html' %}<span class="button-label">Добавить изменение цены</span></button>
+</section>
+{% if editing_rows %}<p class="fine" role="status">Сценарий изменён. Пересчитайте общий результат перед применением.</p>{% endif %}
+{% if preview %}<input type="hidden" name="preview_token" value="{{ preview_token }}"><div id="price-preview" tabindex="-1"><p class="notice">Сценарий рассчитан. Цены ещё не применены. Проверьте весь результат перед подтверждением.</p>{% include 'tseh/scenario_preview.html' %}</div>{% endif %}
+<p id="price-preview-stale" class="notice" role="status" hidden>Данные изменены. Сначала пересчитайте сценарий.</p>
+<div class="form-actions"><button class="button {% if preview %}secondary{% else %}primary{% endif %}" type="submit" name="intent" value="preview"><span class="button-label">{% if preview %}Пересчитать сценарий{% else %}Рассчитать сценарий{% endif %}</span></button>{% if preview %}<button class="button primary" type="submit" name="intent" value="confirm"><span class="button-label">Применить все цены</span></button>{% endif %}<a class="button link" href="{% url 'dashboard' %}"><span class="button-label">Отмена</span></a></div>
+</form>
+<p class="fine">Применённые изменения доступны в <a href="{% url 'journal' %}">журнале</a>.</p>
+{% endblock %}

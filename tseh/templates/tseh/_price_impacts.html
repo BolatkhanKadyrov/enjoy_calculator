@@ -1,0 +1,8 @@
+{% load display %}
+<p class="fine">Зоны показаны при скидке анализа {{ discount|number }}%.</p>
+<section aria-labelledby="price-impact-title"><h2 id="price-impact-title">{% if impact_hypothetical %}Если сделать цену действующей{% else %}Влияние на текущие расчёты{% endif %}</h2>
+{% if impact_hypothetical %}<p class="notice">Сохранится только предложение; текущие расчёты не изменятся.</p>{% endif %}
+{% if impact.preparations %}<h3>Заготовки</h3><div class="panel table-scroll"><table><thead><tr><th scope="col">Заготовка</th><th scope="col">До, ₸ за базовую единицу</th><th scope="col">После, ₸ за базовую единицу</th></tr></thead><tbody>{% for row in impact.preparations %}<tr><td>{{ row.obj.name }} ({{ row.unit|unit_label }})</td><td>{{ row.before|cash }}</td><td>{{ row.after|cash }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% if impact.dishes %}<h3>Блюда</h3><div class="panel table-scroll"><table><thead><tr><th scope="col">Блюдо</th><th scope="col">Себестоимость до, ₸/порцию</th><th scope="col">После, ₸/порцию</th><th scope="col">Зона до</th><th scope="col">Зона после</th></tr></thead><tbody>{% for row in impact.dishes %}<tr><td>{{ row.obj.name }}</td><td>{{ row.before.raw|cash }}</td><td>{{ row.after.raw|cash }}</td><td><span class="zone {{ row.old_assessment.zone }}">{{ row.old_assessment.label }}</span></td><td><span class="zone {{ row.new_assessment.zone }}">{{ row.new_assessment.label }}</span></td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% if not impact.preparations and not impact.dishes %}<p class="muted">Текущая себестоимость блюд и заготовок не изменится.</p>{% endif %}
+</section>

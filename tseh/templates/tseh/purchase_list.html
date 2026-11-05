@@ -1,0 +1,10 @@
+{% extends 'tseh/base.html' %}{% load display %}{% block title %}Закупки · Цех{% endblock %}{% block content %}
+<header class="page-heading"><div><h1>Закупки</h1><p>Состав, закупочные цены и доставка поставщика.</p></div><a class="button primary" href="{% url 'purchase-create' %}">{% include 'tseh/_icon_plus.html' %}<span class="button-label">Добавить закупку</span></a></header>
+<p><a class="link" href="{% url 'delivery-list' %}">Нераспределённая доставка</a> — сохранённые суммы, которые можно целиком перенести в закупку.</p>
+{% include 'tseh/_list_controls.html' %}
+<div class="panel table-scroll"><table><thead><tr><th scope="col">Дата закупки</th><th scope="col">Поставщик</th><th scope="col">Состав</th><th scope="col">Доставка</th><th scope="col">Комментарий</th></tr></thead><tbody>
+{% for obj in purchases %}<tr><td><a href="{% url 'purchase-detail' obj.pk %}">{{ obj.purchase_date|date:'d.m.Y' }}</a></td><td>{{ obj.supplier.name|default:'Не указан' }}</td><td>{{ obj.item_names }}<div class="fine">Строк: {{ obj.line_count }}</div></td><td>{{ obj.delivery_total|cash }} ₸</td><td>{{ obj.comment|default:'—'|linebreaksbr }}</td></tr>
+{% empty %}<tr><td colspan="5">{% if list_active %}Нет закупок по выбранным условиям. <a href="{{ list_reset_url }}">Сбросить фильтры</a>{% else %}Закупок пока нет. <a href="{% url 'purchase-create' %}">Добавьте первую закупку</a>, чтобы сохранить состав и распределить доставку.{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% include 'tseh/_pagination.html' %}
+<p class="fine">Закупка сохраняет предложения цен. Действующая цена каждой позиции выбирается отдельно; складские остатки здесь не учитываются.</p>
+{% endblock %}

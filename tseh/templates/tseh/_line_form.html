@@ -1,0 +1,9 @@
+<div class="recipe-line" data-prefix="{{ line.prefix }}"{% if line.DELETE.value %} hidden{% endif %}>
+{{ line.DELETE }}
+{% if not line.DELETE.value %}{{ line.non_field_errors }}<div class="line-fields">
+{% include 'tseh/_field.html' with field=line.component field_class='line-component' %}
+{% include 'tseh/_field.html' with field=line.quantity field_class='line-quantity' %}
+{% include 'tseh/_field.html' with field=line.unit field_class='line-unit' %}
+<div class="delete-field"><button type="submit" name="remove_line" value="{{ line.prefix }}" class="button remove-line" aria-label="Удалить компонент {{ forloop.counter|default:'новой строки' }}" formnovalidate><span class="button-label">Удалить компонент</span></button></div>
+</div>{% for field in line.hidden_fields %}{% if field.name != 'DELETE' %}{{ field }}{% endif %}{% endfor %}{% endif %}
+</div>

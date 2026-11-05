@@ -1,0 +1,8 @@
+{% extends 'tseh/base.html' %}{% load display %}{% block title %}Копии и экспорт · Цех{% endblock %}{% block content %}
+<header class="page-heading"><div><h1>Копии и экспорт</h1><p>Полный перенос данных — JSON. Отчёт для просмотра — Excel.</p></div></header>
+<section class="panel padded exchange-section"><h2>Скачать данные</h2><p>JSON сохраняет цены, рецептуры, закупки, историю, архив, корзину и журнал с исходной точностью. Учётная запись, пароль и активные входы в копию не входят.</p>
+<div class="form-actions"><a class="button primary" href="{% url 'export-json' %}"><span class="button-label">Скачать полную JSON-копию</span></a><a class="button secondary" href="{% url 'export-xlsx' %}"><span class="button-label">Скачать отчёт Excel</span></a></div>
+<p class="fine">Excel учитывает скидку анализа {{ discount|number }}% и ограничен числовой точностью Excel. Он не заменяет резервную копию; импорта Excel нет.</p>
+<p class="notice">Регулярно скачивайте JSON вручную и храните копию отдельно от компьютера. Автоматическое резервирование пока не настроено.</p></section>
+<section class="panel padded exchange-section"><h2>Восстановить из JSON</h2><p>Восстановление полностью заменит текущие данные и журнал содержимым файла. Сначала файл будет проверен, затем вы скачаете копию текущего состояния и отдельно подтвердите замену.</p>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}{% include 'tseh/_field.html' with field=form.backup_file %}<div class="form-actions"><button class="button secondary" type="submit"><span class="button-label">Проверить файл</span></button></div></form></section>{% endblock %}

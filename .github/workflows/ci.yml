@@ -1,0 +1,95 @@
+name: Tests and Linux container
+
+# Action commit pins verified against official releases on 2026-11-05:
+# https://github.com/actions/checkout/releases/tag/v7.0.1
+# https://github.com/actions/setup-python/releases/tag/v7.1.0
+# https://github.com/actions/setup-node/releases/tag/v7.1.0
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# No repository writes, deployment credentials, registry push or Railway access.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Python and JavaScript tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: tseh_ci
+          POSTGRES_PASSWORD: ci-only-disposable-password
+          POSTGRES_DB: tseh_ci
+          POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U tseh_ci -d tseh_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # These values belong only to this disposable test service, never production.
+      DATABASE_URL: postgresql://tseh_ci:ci-only-disposable-password@127.0.0.1:54329/tseh_ci
+      DJANGO_SECRET_KEY: ci-only-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz
+      DJANGO_DEBUG: '1'
+      DJANGO_SECURE_SSL_REDIRECT: '0'
+      DJANGO_TRUST_PROXY: '0'
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      TZ: Asia/Qyzylorda
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14.6'
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - name: Set up Node LTS
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: python -m pip install --only-binary=:all: -r requirements.lock
+      - name: Check Django and migration consistency
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+      - name: Run complete Python suite
+        run: python -m pytest -q
+      - name: Run five JavaScript suites
+        run: |
+          node tests/test_units.js
+          node tests/test_recipe_units.js
+          node tests/test_component_search.js
+          node tests/test_draft_store.js
+          node tests/test_draft_editor.js
+
+  container:
+    name: Production image on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build image without runtime secrets or database
+        run: docker build --pull --tag tseh-ci:smoke .
+      - name: Run fresh-database production smoke test
+        run: bash scripts/ci-smoke.sh tseh-ci:smoke

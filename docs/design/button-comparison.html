@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Цех — сравнение надписей кнопок</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { color-scheme: light; }
+    body { margin: 0; background: #f5f5f0; color: #24322b; font: 16px/1.5 'Segoe UI', system-ui, sans-serif; }
+    main { max-width: 1440px; padding: 32px; margin: auto; }
+    h1 { font-size: 28px; line-height: 1.2; margin: 0 0 12px; }
+    h2 { font-size: 18px; line-height: 1.4; margin: 0 0 8px; }
+    p { margin: 0 0 20px; max-width: 78ch; }
+    .intro { color: #42523e; }
+    .compare { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #dce2d5; border-bottom: 1px solid #dce2d5; margin: 28px 0; background: #fff; }
+    .variant { padding: 24px; min-width: 0; }
+    .variant + .variant { border-left: 1px solid #dce2d5; }
+    .variant > p { min-height: 72px; font-size: 14px; color: #42523e; }
+    .row { min-height: 80px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .row.pair { min-height: 136px; align-content: center; }
+    button { font-family: inherit; }
+    .button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; max-width: 100%; padding: 12px 16px; border: 1px solid transparent; border-radius: 6px; font-size: 14px; font-weight: 600; line-height: calc(20 / 14); text-align: center; white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
+    .button-label { display: block; min-width: 0; }
+    .button-icon { display: block; width: 16px; height: 16px; flex: 0 0 16px; }
+    .primary { color: #fff; background: #30553d; border-color: #30553d; }
+    .primary:hover { background: #21412c; border-color: #21412c; }
+    .secondary { color: #21412c; background: #dfead4; border-color: #58664e; }
+    .secondary:hover { background: #d2e0c4; }
+    .button:disabled { color: #58664e; background: #f0f2ec; border-color: #dce2d5; cursor: not-allowed; }
+    :where(button, input, a):focus-visible { outline: 3px solid #30553d; outline-offset: 3px; }
+    ::selection { background: #dfead4; color: #24322b; }
+    .v-a .button-label { text-box-trim: trim-both; text-box-edge: ex alphabetic; }
+    .v-b .button-label { text-box-trim: trim-both; text-box-edge: cap alphabetic; }
+    .v-c .button-label, .v-d .button-label { text-box-trim: none; }
+    .v-d .button { font-size: 16px; line-height: 1.25; }
+    .controls { display: flex; gap: 12px; align-items: center; min-height: 48px; }
+    .controls input { width: 20px; height: 20px; accent-color: #30553d; }
+    .guides .button::after { content: ''; pointer-events: none; position: absolute; inset-inline: -8px; top: 50%; border-top: 1px dashed #a03c27; }
+    .guides .primary::after { border-color: #e5ba79; }
+    .note { color: #42523e; font-size: 14px; }
+    #status { min-height: 24px; }
+    @media (max-width: 1000px) { .compare { grid-template-columns: repeat(2,minmax(0,1fr)); } .variant:nth-child(3) { border-left: 0; } .variant:nth-child(n+3) { border-top: 1px solid #dce2d5; } }
+    @media (max-width: 540px) { main { padding: 20px 16px; } .compare { grid-template-columns: 1fr; } .variant + .variant { border-left: 0; border-top: 1px solid #dce2d5; } .variant > p { min-height: 0; } }
+    @media (forced-colors: active) { .button { border-color: ButtonText; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Текст в кнопках: четыре варианта</h1>
+  <p class="intro">Во всех вариантах сохранены Segoe UI, цвет, радиус, высота 48 px и симметричные отступы. A–C различаются только способом вертикального выравнивания. В D дополнительно увеличен текст.</p>
+  <label class="controls"><input id="guides" type="checkbox"> Показать линию центра кнопок</label>
+  <div class="compare" id="comparison"></div>
+  <p id="status" role="status">Это отдельный макет. Кнопки не меняют данные сервиса.</p>
+  <p class="note">Сначала сравните без направляющих при масштабе браузера 100%. Линия показывает геометрический центр кнопки; она не определяет визуальный центр букв. Если браузер не поддерживает обрезку метрик текста, A и B совпадут с обычным выравниванием.</p>
+</main>
+<script>
+  const variants = [
+    ['a', 'A · Сейчас', '14 px. Центрирование по высоте строчных букв.'],
+    ['b', 'B · По прописным', '14 px. Центрирование по высоте заглавных букв.'],
+    ['c', 'C · Обычная строка', '14 px. Центрируется строка с метриками шрифта, без обрезки.'],
+    ['d', 'D · Крупнее', '16 px. Обычная строка без обрезки. Размер самой кнопки сохранён.']
+  ];
+  const icon = '<svg class="button-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  const button = (text, kind = 'secondary', plus = false, disabled = false) => `<button type="button" class="button ${kind}" ${disabled ? 'disabled' : ''}>${plus ? icon : ''}<span class="button-label">${text}</span></button>`;
+  for (const [key, title, description] of variants) {
+    const section = document.createElement('section');
+    section.className = `variant v-${key}`;
+    section.innerHTML = `<h2>${title}</h2><p>${description}</p><div class="row">${button('Новое блюдо','primary',true)}</div><div class="row">${button('Пересчитать')}</div><div class="row pair">${button('Показать')}${button('Сбросить')}</div><div class="row">${button('Добавить компонент','secondary',true)}</div><div class="row">${button('Сначала пересчитайте','secondary',false,true)}</div>`;
+    document.querySelector('#comparison').append(section);
+  }
+  document.querySelector('#guides').addEventListener('change', (event) => document.body.classList.toggle('guides', event.target.checked));
+  document.querySelector('#comparison').addEventListener('click', (event) => {
+    const target = event.target.closest('button');
+    if (target) document.querySelector('#status').textContent = `Макет: ${target.closest('section').querySelector('h2').textContent}, «${target.textContent.trim()}». Данные сервиса не изменяются.`;
+  });
+</script>
+</body>
+</html>

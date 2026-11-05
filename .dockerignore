@@ -1,0 +1,18 @@
+# Allow-list the build context: local databases, credentials, backups, browser
+# profiles, virtual environments and user files never reach the Docker builder.
+**
+!Dockerfile
+!.dockerignore
+!requirements.lock
+!pyproject.toml
+!manage.py
+!config/
+!config/**
+!tseh/
+!tseh/**
+!scripts/
+!scripts/start-production.sh
+!scripts/predeploy.py
+**/__pycache__/
+**/*.pyc
+**/*.pyo

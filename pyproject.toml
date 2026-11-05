@@ -1,0 +1,22 @@
+[project]
+name = "tseh-calculator"
+version = "0.7.0"
+description = "Расчёт себестоимости Цеха"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "Django>=5.2.8,<5.3",
+  "psycopg[binary]>=3.2,<4",
+  "dj-database-url>=2.3,<4",
+  "whitenoise>=6.9,<7",
+  "gunicorn>=23,<24",
+  "openpyxl==3.1.5",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "pytest-django>=4.11,<5"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-ra"

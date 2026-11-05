@@ -1,0 +1,30 @@
+{% load static %}<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>{% block title %}Цех · Себестоимость{% endblock %}</title><link rel="stylesheet" href="{% static 'tseh/app.css' %}"><script src="{% static 'tseh/units.js' %}" defer></script><script src="{% static 'tseh/recipe-units.js' %}" defer></script><script src="{% static 'tseh/component-picker.js' %}" defer></script><script src="{% static 'tseh/draft-store.js' %}" defer></script><script src="{% static 'tseh/draft-editor.js' %}" defer></script><script src="{% static 'tseh/app.js' %}" defer></script></head>
+<body><a class="skip" href="#main">К содержимому</a>
+{% if user.is_authenticated %}
+<aside class="sidebar"><a class="brand" href="{% url 'dashboard' %}" aria-label="Цех — блюда"><span class="brand-mark">ц.</span><span>ЦЕХ<small>себестоимость</small></span></a>
+<div class="nav-label">РАБОЧЕЕ ПРОСТРАНСТВО</div><nav aria-label="Основная навигация">
+<a href="{% url 'dashboard' %}" {% if active == 'dishes' %}aria-current="page"{% endif %}><span class="nav-icon">▦</span> Блюда</a>
+<a href="{% url 'preparations' %}" {% if active == 'preparations' %}aria-current="page"{% endif %}><span class="nav-icon">◫</span> Заготовки</a>
+<a href="{% url 'ingredients' %}" {% if active == 'ingredients' %}aria-current="page"{% endif %}><span class="nav-icon">◈</span> Сырьё и упаковка</a>
+<a href="{% url 'scenario-editor' %}" {% if active == 'scenarios' %}aria-current="page"{% endif %}><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4v16h16M7 15l4-5 4 2 5-6"/></svg> Сценарии цен</a>
+<a href="{% url 'purchase-list' %}" {% if active == 'purchases' %}aria-current="page"{% endif %}><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3Z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg> Закупки и доставка</a>
+<a href="{% url 'suppliers' %}" {% if active == 'suppliers' %}aria-current="page"{% endif %}><span class="nav-icon">▤</span> Поставщики</a>
+<a href="{% url 'journal' %}" {% if active == 'journal' %}aria-current="page"{% endif %}><span class="nav-icon">◷</span> Журнал</a>
+<a href="{% url 'thresholds' %}" {% if active == 'thresholds' %}aria-current="page"{% endif %}><span class="nav-icon">◉</span> Пороги зон</a>
+<a href="{% url 'archive' %}" {% if active == 'archive' %}aria-current="page"{% endif %}><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h18v4H3zM5 8v12h14V8M9 12h6"/></svg> Архив и корзина</a>
+<a href="{% url 'exchange' %}" {% if active == 'exchange' %}aria-current="page"{% endif %}><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v12m-4-4 4 4 4-4M5 15v6h14v-6"/></svg> Копии и экспорт</a></nav>
+<div class="sidebar-bottom"><span class="status-dot"></span> Общая учётная запись<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout" type="submit">Выйти ↗</button></form></div></aside>
+{% endif %}
+<main id="main" class="{% if user.is_authenticated %}workspace{% else %}login-main{% endif %}">
+{% if user.is_authenticated %}<div class="topline"><span>Расчёт себестоимости</span><span>₸ &nbsp; Казахстанский тенге</span></div>{% endif %}
+{% for message in messages %}<div class="notice success" role="status">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}
+{% if user.is_authenticated %}<footer>Расчёт по выбранным закупочным ценам. Накладные расходы отдельно не учитываются.</footer>{% endif %}
+</main>
+{% if draft_saved_receipt %}{{ draft_saved_receipt|json_script:'draft-saved-receipt' }}{% endif %}
+{% if user.is_authenticated %}<dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-dialog-title" aria-describedby="reset-dialog-message">
+<h2 id="reset-dialog-title">Сбросить изменения?</h2><p id="reset-dialog-message">Несохранённые изменения будут потеряны. Форма загрузится заново.</p>
+<div class="dialog-actions"><button type="button" id="reset-cancel" class="button secondary" autofocus><span class="button-label">Продолжить редактирование</span></button><button type="button" id="reset-confirm" class="button remove-line"><span class="button-label">Сбросить изменения</span></button></div>
+</dialog>{% endif %}
+</body></html>

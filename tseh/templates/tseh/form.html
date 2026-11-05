@@ -1,0 +1,25 @@
+{% extends 'tseh/base.html' %}{% block title %}{{ title }}{% if form.name.value %}: {{ form.name.value }}{% endif %} · Цех{% endblock %}{% block content %}
+<a class="back" href="{% url back %}">← Назад к списку</a>
+<header class="page-heading"><div><h1>{{ title }}</h1>{% if intro %}<p>{{ intro }}</p>{% endif %}</div></header>
+<section class="panel form-panel"><form method="post" data-draft-submitted="{% if request.method == 'POST' %}true{% else %}false{% endif %}">
+{% csrf_token %}{{ form.non_field_errors }}
+{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
+<div class="form-grid">
+{% for field in form.visible_fields %}
+  {% if field.name == 'note' or field.name == 'confirm_zero' %}{% include 'tseh/_field.html' with field_class='wide' %}{% else %}{% include 'tseh/_field.html' %}{% endif %}
+{% endfor %}
+</div>
+<div class="editor-actions"><div class="form-actions">
+  <button type="submit" class="button primary"><span class="button-label">Сохранить</span></button>
+  <a href="{% url back %}" class="button link"><span class="button-label">Отмена</span></a>
+  <details class="reset-action">
+    <summary class="button link"><span class="button-label">Сбросить изменения</span></summary>
+    <div class="reset-confirmation">
+      <p>Форма загрузит актуальные данные; для новой записи откроется пустая форма. Несохранённые изменения будут потеряны.</p>
+      <a href="{{ request.path }}" class="button link" data-reset-form data-confirm-message="Сбросить изменения? Несохранённые изменения будут потеряны."><span class="button-label">Сбросить изменения</span></a>
+      <p class="fine">Чтобы продолжить редактирование, закройте этот блок.</p>
+    </div>
+  </details>
+</div>
+<p class="fine">«Сбросить изменения» перечитает форму с сервера. Несохранённый черновик будет потерян.</p>
+</div></form></section>{% endblock %}

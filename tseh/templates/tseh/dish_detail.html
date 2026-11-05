@@ -1,0 +1,56 @@
+{% extends 'tseh/base.html' %}{% load display %}{% block title %}{{ obj.name }} — Блюдо · Цех{% endblock %}{% block content %}
+<a class="back" href="{% if obj.status == 'active' %}{% url 'dashboard' %}{% else %}{% url 'archive' %}?status={{ obj.status }}{% endif %}">← {% if obj.status == 'active' %}Все блюда{% else %}Архив и корзина{% endif %}</a>
+<header class="page-heading">
+  <div><h1>{{ obj.name }}</h1><p>Расчёт по действующим закупочным ценам.</p></div>
+  <div class="heading-actions">{% if obj.status != 'trashed' %}<a href="{% url 'dish-edit' obj.pk %}" class="button secondary"><span class="button-label">Изменить рецептуру</span></a>{% endif %}
+  {% if obj.status == 'active' %}<a class="button link" href="{% url 'dish-transition' obj.pk 'archive' %}"><span class="button-label">Убрать в архив</span></a>{% elif obj.status == 'archived' %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'activate' %}"><span class="button-label">Вернуть в ассортимент</span></a><a class="button link" href="{% url 'dish-transition' obj.pk 'trash' %}"><span class="button-label">В корзину</span></a>{% else %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'restore' %}"><span class="button-label">Восстановить в архив</span></a>{% endif %}</div>
+</header>
+{% if obj.status == 'archived' %}<p class="notice">Блюдо в архиве и не входит в активный ассортимент. Расчёт ниже использует текущие цены.</p>{% elif obj.status == 'trashed' %}<p class="notice">Блюдо в корзине. Срок окончательного удаления: {{ obj.purge_at|date:'d.m.Y H:i' }}. До очередной очистки его можно восстановить в архив.</p>{% endif %}
+<div class="cost-banner"><div><span>Себестоимость порции</span><strong>{{ result.raw|cash }} <small>₸</small></strong></div><div><span>Отпускная цена</span><strong>{{ obj.base_price|cash }} <small>₸</small></strong></div><div class="cost-note">Первичные потери учтены.<br>Итог округлён после сложения компонентов.</div></div>
+{% include 'tseh/_discount.html' %}{% include 'tseh/_assessment.html' %}
+
+<section class="panel">
+  <div class="panel-heading"><h2>Состав и стоимость</h2><span class="muted">Сырьё — чистое сырое; заготовки — готовый выход</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Компонент</th><th class="numeric">Количество</th><th class="numeric">Потери</th><th class="numeric">Стоимость</th></tr></thead>
+      <tbody>
+        {% for line, cost in rows %}
+        <tr>
+          <td>
+            {% include 'tseh/_component_link.html' %}
+            {% if line.is_unique %}<span class="uniqueness-badge">Только в этом блюде</span>{% endif %}
+            {% if line.preparation_id %}
+            <details class="ingredient-breakdown">
+              <summary>Сырьё в заготовке{% if line.unique_count %} · только в этом блюде: {{ line.unique_count }}{% endif %}</summary>
+              <ul>
+                {% for ingredient, is_unique in line.ingredient_breakdown %}
+                <li><a href="{% url 'ingredient-detail' ingredient.pk %}">{{ ingredient.name }}</a>{% if is_unique %} <span class="uniqueness-badge">Только в этом блюде</span>{% endif %}</li>
+                {% endfor %}
+              </ul>
+            </details>
+            {% endif %}
+          </td>
+          <td class="numeric">{{ line|quantity }}</td>
+          <td class="numeric">{% if line.ingredient_id %}{{ line.ingredient.loss|cash }}%{% else %}Уже учтены{% endif %}</td>
+          <td class="numeric">{{ cost|cash }} ₸</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><th colspan="3">Итого на порцию</th><td class="numeric total">{{ result.raw|cash }} ₸</td></tr></tfoot>
+    </table>
+  </div>
+  <p class="table-note">~ означает «Значение округлено». Отображаемая точность строк не меняет расчёт.</p>
+</section>
+<section class="panel padded uniqueness-summary" aria-labelledby="uniqueness-heading">
+  <div>
+    <h2 id="uniqueness-heading">Уникальность блюда</h2>
+    <p>Виды сырья, которые не используются в других активных блюдах. Сырьё внутри заготовок учитывается, упаковка — нет.</p>
+  </div>
+  <div class="uniqueness-value">
+    <strong>{{ uniqueness.percentage|percentage }}</strong>
+    <span>{{ uniqueness.unique_count }}/{{ uniqueness.total_count }} видов сырья</span>
+  </div>
+  {% if not uniqueness.total_count %}<p class="fine">В составе нет сырья для сравнения.</p>{% endif %}
+</section>
+{% endblock %}

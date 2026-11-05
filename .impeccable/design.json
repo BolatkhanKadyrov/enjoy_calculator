@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T17:44:19.119036+00:00",
+  "title": "Design System: Цех",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Лесной зелёный",
+        "canonical": "#30553d",
+        "tonalRamp": [
+          "oklch(15% 0.0147 154.52)",
+          "oklch(25% 0.0324 154.52)",
+          "oklch(35% 0.0471 154.52)",
+          "oklch(45% 0.0589 154.52)",
+          "oklch(60% 0.0589 154.52)",
+          "oklch(75% 0.0471 154.52)",
+          "oklch(85% 0.0294 154.52)",
+          "oklch(95% 0.0088 154.52)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "primary-hover",
+        "canonical": "#21412c",
+        "tonalRamp": [
+          "oklch(15% 0.0133 153.87)",
+          "oklch(25% 0.0293 153.87)",
+          "oklch(35% 0.0426 153.87)",
+          "oklch(45% 0.0532 153.87)",
+          "oklch(60% 0.0532 153.87)",
+          "oklch(75% 0.0426 153.87)",
+          "oklch(85% 0.0266 153.87)",
+          "oklch(95% 0.0080 153.87)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Экрю",
+        "canonical": "#f5f5f0",
+        "tonalRamp": [
+          "oklch(15% 0.0017 106.52)",
+          "oklch(25% 0.0036 106.52)",
+          "oklch(35% 0.0053 106.52)",
+          "oklch(45% 0.0066 106.52)",
+          "oklch(60% 0.0066 106.52)",
+          "oklch(75% 0.0053 106.52)",
+          "oklch(85% 0.0033 106.52)",
+          "oklch(95% 0.0010 106.52)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(25% 0.0000 89.88)",
+          "oklch(35% 0.0000 89.88)",
+          "oklch(45% 0.0000 89.88)",
+          "oklch(60% 0.0000 89.88)",
+          "oklch(75% 0.0000 89.88)",
+          "oklch(85% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "text",
+        "canonical": "#24322b",
+        "tonalRamp": [
+          "oklch(15% 0.0057 162.99)",
+          "oklch(25% 0.0124 162.99)",
+          "oklch(35% 0.0181 162.99)",
+          "oklch(45% 0.0226 162.99)",
+          "oklch(60% 0.0226 162.99)",
+          "oklch(75% 0.0181 162.99)",
+          "oklch(85% 0.0113 162.99)",
+          "oklch(95% 0.0034 162.99)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "text-secondary",
+        "canonical": "#42523e",
+        "tonalRamp": [
+          "oklch(15% 0.0096 139.43)",
+          "oklch(25% 0.0210 139.43)",
+          "oklch(35% 0.0306 139.43)",
+          "oklch(45% 0.0382 139.43)",
+          "oklch(60% 0.0382 139.43)",
+          "oklch(75% 0.0306 139.43)",
+          "oklch(85% 0.0191 139.43)",
+          "oklch(95% 0.0057 139.43)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "muted",
+        "canonical": "#58664e",
+        "tonalRamp": [
+          "oklch(15% 0.0102 132.44)",
+          "oklch(25% 0.0225 132.44)",
+          "oklch(35% 0.0328 132.44)",
+          "oklch(45% 0.0409 132.44)",
+          "oklch(60% 0.0409 132.44)",
+          "oklch(75% 0.0328 132.44)",
+          "oklch(85% 0.0205 132.44)",
+          "oklch(95% 0.0061 132.44)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "border",
+        "canonical": "#dce2d5",
+        "tonalRamp": [
+          "oklch(15% 0.0046 127.16)",
+          "oklch(25% 0.0102 127.16)",
+          "oklch(35% 0.0149 127.16)",
+          "oklch(45% 0.0186 127.16)",
+          "oklch(60% 0.0186 127.16)",
+          "oklch(75% 0.0149 127.16)",
+          "oklch(85% 0.0093 127.16)",
+          "oklch(95% 0.0028 127.16)"
+        ]
+      },
+      "control-border": {
+        "role": "neutral",
+        "displayName": "control-border",
+        "canonical": "#829077",
+        "tonalRamp": [
+          "oklch(15% 0.0100 131.41)",
+          "oklch(25% 0.0219 131.41)",
+          "oklch(35% 0.0319 131.41)",
+          "oklch(45% 0.0399 131.41)",
+          "oklch(60% 0.0399 131.41)",
+          "oklch(75% 0.0319 131.41)",
+          "oklch(85% 0.0199 131.41)",
+          "oklch(95% 0.0060 131.41)"
+        ]
+      },
+      "neutral-soft": {
+        "role": "neutral",
+        "displayName": "neutral-soft",
+        "canonical": "#f0f2ec",
+        "tonalRamp": [
+          "oklch(15% 0.0021 121.63)",
+          "oklch(25% 0.0045 121.63)",
+          "oklch(35% 0.0066 121.63)",
+          "oklch(45% 0.0082 121.63)",
+          "oklch(60% 0.0082 121.63)",
+          "oklch(75% 0.0066 121.63)",
+          "oklch(85% 0.0041 121.63)",
+          "oklch(95% 0.0012 121.63)"
+        ]
+      },
+      "sage-soft": {
+        "role": "neutral",
+        "displayName": "sage-soft",
+        "canonical": "#edf2e5",
+        "tonalRamp": [
+          "oklch(15% 0.0045 123.97)",
+          "oklch(25% 0.0099 123.97)",
+          "oklch(35% 0.0144 123.97)",
+          "oklch(45% 0.0180 123.97)",
+          "oklch(60% 0.0180 123.97)",
+          "oklch(75% 0.0144 123.97)",
+          "oklch(85% 0.0090 123.97)",
+          "oklch(95% 0.0027 123.97)"
+        ]
+      },
+      "sage-active": {
+        "role": "neutral",
+        "displayName": "Шалфейная подложка",
+        "canonical": "#dfead4",
+        "tonalRamp": [
+          "oklch(15% 0.0079 128.85)",
+          "oklch(25% 0.0174 128.85)",
+          "oklch(35% 0.0252 128.85)",
+          "oklch(45% 0.0316 128.85)",
+          "oklch(60% 0.0316 128.85)",
+          "oklch(75% 0.0252 128.85)",
+          "oklch(85% 0.0158 128.85)",
+          "oklch(95% 0.0047 128.85)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "danger",
+        "canonical": "#873d2e",
+        "tonalRamp": [
+          "oklch(15% 0.0263 32.97)",
+          "oklch(25% 0.0578 32.97)",
+          "oklch(35% 0.0841 32.97)",
+          "oklch(45% 0.1051 32.97)",
+          "oklch(60% 0.1051 32.97)",
+          "oklch(75% 0.0841 32.97)",
+          "oklch(85% 0.0526 32.97)",
+          "oklch(95% 0.0158 32.97)"
+        ]
+      },
+      "danger-bg": {
+        "role": "semantic",
+        "displayName": "danger-bg",
+        "canonical": "#fff7f2",
+        "tonalRamp": [
+          "oklch(15% 0.0027 54.50)",
+          "oklch(25% 0.0060 54.50)",
+          "oklch(35% 0.0087 54.50)",
+          "oklch(45% 0.0109 54.50)",
+          "oklch(60% 0.0109 54.50)",
+          "oklch(75% 0.0087 54.50)",
+          "oklch(85% 0.0054 54.50)",
+          "oklch(95% 0.0016 54.50)"
+        ]
+      },
+      "zone-green-bg": {
+        "role": "semantic",
+        "displayName": "zone-green-bg",
+        "canonical": "#eaf3e3",
+        "tonalRamp": [
+          "oklch(15% 0.0058 131.14)",
+          "oklch(25% 0.0128 131.14)",
+          "oklch(35% 0.0186 131.14)",
+          "oklch(45% 0.0232 131.14)",
+          "oklch(60% 0.0232 131.14)",
+          "oklch(75% 0.0186 131.14)",
+          "oklch(85% 0.0116 131.14)",
+          "oklch(95% 0.0035 131.14)"
+        ]
+      },
+      "zone-green-text": {
+        "role": "semantic",
+        "displayName": "zone-green-text",
+        "canonical": "#365a2b",
+        "tonalRamp": [
+          "oklch(15% 0.0211 138.74)",
+          "oklch(25% 0.0464 138.74)",
+          "oklch(35% 0.0675 138.74)",
+          "oklch(45% 0.0843 138.74)",
+          "oklch(60% 0.0843 138.74)",
+          "oklch(75% 0.0675 138.74)",
+          "oklch(85% 0.0422 138.74)",
+          "oklch(95% 0.0127 138.74)"
+        ]
+      },
+      "zone-green-border": {
+        "role": "semantic",
+        "displayName": "zone-green-border",
+        "canonical": "#c9dfb8",
+        "tonalRamp": [
+          "oklch(15% 0.0144 131.59)",
+          "oklch(25% 0.0316 131.59)",
+          "oklch(35% 0.0460 131.59)",
+          "oklch(45% 0.0574 131.59)",
+          "oklch(60% 0.0574 131.59)",
+          "oklch(75% 0.0460 131.59)",
+          "oklch(85% 0.0287 131.59)",
+          "oklch(95% 0.0086 131.59)"
+        ]
+      },
+      "zone-orange-bg": {
+        "role": "semantic",
+        "displayName": "zone-orange-bg",
+        "canonical": "#fff1d9",
+        "tonalRamp": [
+          "oklch(15% 0.0087 81.28)",
+          "oklch(25% 0.0192 81.28)",
+          "oklch(35% 0.0280 81.28)",
+          "oklch(45% 0.0349 81.28)",
+          "oklch(60% 0.0349 81.28)",
+          "oklch(75% 0.0280 81.28)",
+          "oklch(85% 0.0175 81.28)",
+          "oklch(95% 0.0052 81.28)"
+        ]
+      },
+      "zone-orange-text": {
+        "role": "semantic",
+        "displayName": "zone-orange-text",
+        "canonical": "#885816",
+        "tonalRamp": [
+          "oklch(15% 0.0249 69.25)",
+          "oklch(25% 0.0548 69.25)",
+          "oklch(35% 0.0797 69.25)",
+          "oklch(45% 0.0997 69.25)",
+          "oklch(60% 0.0997 69.25)",
+          "oklch(75% 0.0797 69.25)",
+          "oklch(85% 0.0498 69.25)",
+          "oklch(95% 0.0150 69.25)"
+        ]
+      },
+      "zone-orange-border": {
+        "role": "semantic",
+        "displayName": "zone-orange-border",
+        "canonical": "#f0d4a3",
+        "tonalRamp": [
+          "oklch(15% 0.0177 81.42)",
+          "oklch(25% 0.0390 81.42)",
+          "oklch(35% 0.0567 81.42)",
+          "oklch(45% 0.0709 81.42)",
+          "oklch(60% 0.0709 81.42)",
+          "oklch(75% 0.0567 81.42)",
+          "oklch(85% 0.0355 81.42)",
+          "oklch(95% 0.0106 81.42)"
+        ]
+      },
+      "zone-red-bg": {
+        "role": "semantic",
+        "displayName": "zone-red-bg",
+        "canonical": "#fff0e9",
+        "tonalRamp": [
+          "oklch(15% 0.0047 46.81)",
+          "oklch(25% 0.0103 46.81)",
+          "oklch(35% 0.0150 46.81)",
+          "oklch(45% 0.0188 46.81)",
+          "oklch(60% 0.0188 46.81)",
+          "oklch(75% 0.0150 46.81)",
+          "oklch(85% 0.0094 46.81)",
+          "oklch(95% 0.0028 46.81)"
+        ]
+      },
+      "zone-red-text": {
+        "role": "semantic",
+        "displayName": "zone-red-text",
+        "canonical": "#a03c27",
+        "tonalRamp": [
+          "oklch(15% 0.0344 33.57)",
+          "oklch(25% 0.0757 33.57)",
+          "oklch(35% 0.1100 33.57)",
+          "oklch(45% 0.1375 33.57)",
+          "oklch(60% 0.1375 33.57)",
+          "oklch(75% 0.1100 33.57)",
+          "oklch(85% 0.0688 33.57)",
+          "oklch(95% 0.0206 33.57)"
+        ]
+      },
+      "zone-red-border": {
+        "role": "semantic",
+        "displayName": "zone-red-border",
+        "canonical": "#efc1b2",
+        "tonalRamp": [
+          "oklch(15% 0.0142 38.84)",
+          "oklch(25% 0.0313 38.84)",
+          "oklch(35% 0.0456 38.84)",
+          "oklch(45% 0.0570 38.84)",
+          "oklch(60% 0.0570 38.84)",
+          "oklch(75% 0.0456 38.84)",
+          "oklch(85% 0.0285 38.84)",
+          "oklch(95% 0.0085 38.84)"
+        ]
+      },
+      "sage-hover": {
+        "role": "neutral",
+        "displayName": "Шалфейная подложка при наведении",
+        "canonical": "#d2e0c4"
+      }
+    },
+    "typographyMeta": {
+      "heading": {
+        "displayName": "Заголовок экрана",
+        "purpose": "32 px, 28 px на узком экране."
+      },
+      "control": {
+        "displayName": "Поле ввода",
+        "purpose": "Читаемые значения на всех ширинах."
+      },
+      "navigation": {
+        "displayName": "Навигация",
+        "purpose": "14 px на всех ширинах, перенос длинной подписи."
+      },
+      "metric": {
+        "displayName": "Основное числовое значение",
+        "purpose": "32 px на широком, 28 px на узком экране."
+      },
+      "compact-metric": {
+        "displayName": "Компактное числовое значение",
+        "purpose": "24 px для оценки и предпросмотра; уникальность — 18 px, после состава."
+      },
+      "section": {
+        "displayName": "Раздел",
+        "purpose": "20 px / 1.3."
+      },
+      "subsection": {
+        "displayName": "Подраздел",
+        "purpose": "18 px / 1.4."
+      },
+      "button": {
+        "displayName": "Кнопка",
+        "purpose": "Вариант C: Segoe UI 14 px / 20 px, обычная строка без text-box-trim. Проверять рядом с полями и таблицами."
+      }
+    },
+    "shadows": [
+      {
+        "name": "login",
+        "value": "0 18px 70px #35491b08",
+        "purpose": "Только существующая карточка входа; рабочие панели плоские."
+      }
+    ],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "compact-navigation",
+        "value": "480px"
+      },
+      {
+        "name": "mobile",
+        "value": "760px"
+      },
+      {
+        "name": "compact-workspace",
+        "value": "1100px"
+      },
+      {
+        "name": "wide-workspace",
+        "value": "1500px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "description": "Общие размеры; относительный интерлиньяж 20/14 и оптический центр по строчным буквам. Без поддержки text-box-trim действует обычный блочный текст. JavaScript сохраняет span.button-label.",
+      "html": "<button type=\"button\" class=\"ds-button ds-primary\"><svg class=\"ds-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" aria-hidden=\"true\"><path d=\"M8 3v10M3 8h10\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg><span class=\"button-label\">Создать блюдо</span></button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-primary{color:var(--color-surface);background:var(--color-primary);border-color:var(--color-primary)}.ds-primary:hover{color:var(--color-surface);background:var(--color-primary-hover);border-color:var(--color-primary-hover)}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}",
+      "refersTo": "button-primary"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "description": "Общие размеры; относительный интерлиньяж 20/14 и оптический центр по строчным буквам. Без поддержки text-box-trim действует обычный блочный текст. JavaScript сохраняет span.button-label.",
+      "html": "<button type=\"button\" class=\"ds-button ds-secondary\"><span class=\"button-label\">Отмена</span></button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-secondary{color:var(--color-primary-hover);background:var(--color-sage-active);border-color:var(--color-muted)}.ds-secondary:hover{color:var(--color-primary-hover);background:var(--color-sage-hover);border-color:var(--color-muted)}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}",
+      "refersTo": "button-secondary"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "description": "Общие размеры; относительный интерлиньяж 20/14 и оптический центр по строчным буквам. Без поддержки text-box-trim действует обычный блочный текст. JavaScript сохраняет span.button-label.",
+      "html": "<button type=\"button\" class=\"ds-button ds-danger\"><span class=\"button-label\">Удалить компонент</span></button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-danger{color:var(--color-danger);background:var(--color-danger-bg);border-color:var(--color-danger-border)}.ds-danger:hover{background:#fae8de;color:#702b20}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}"
+    },
+    {
+      "name": "Subtle Button",
+      "kind": "button",
+      "description": "Общие размеры; относительный интерлиньяж 20/14 и оптический центр по строчным буквам. Без поддержки text-box-trim действует обычный блочный текст. JavaScript сохраняет span.button-label.",
+      "html": "<button type=\"button\" class=\"ds-button ds-subtle\"><span class=\"button-label\">Показать</span></button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-subtle{color:var(--color-text-secondary);background:var(--color-neutral-soft);border-color:var(--color-border)}.ds-subtle:hover{background:var(--color-sage-active)}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}"
+    },
+    {
+      "name": "Link Button",
+      "kind": "button",
+      "description": "Общие размеры; относительный интерлиньяж 20/14 и оптический центр по строчным буквам. Без поддержки text-box-trim действует обычный блочный текст. JavaScript сохраняет span.button-label.",
+      "html": "<button type=\"button\" class=\"ds-button ds-link\"><span class=\"button-label\">Перечитать форму</span></button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-link{color:var(--color-primary);background:transparent;text-decoration:underline;text-underline-offset:3px}.ds-link:hover{color:var(--color-primary-hover)}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "description": "Видимая подпись, поле 48 px и подсказка.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-name\">Название блюда</label><input id=\"ds-name\" placeholder=\"Например, сырники\" aria-describedby=\"ds-help\"><small id=\"ds-help\">Название в списке блюд.</small></div>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:var(--space-2);font-family:var(--font-family)}.ds-field label{font-size:var(--font-small);font-weight:600;color:var(--color-text-secondary)}.ds-field input{min-height:var(--control-height);padding:11px 14px;border:1px solid var(--color-control-border);border-radius:var(--radius-control);background:#fdfefb;color:var(--color-text);font:var(--font-control)/24px var(--font-family)}.ds-field input:focus-visible{outline:var(--focus-ring);outline-offset:3px;border-color:var(--color-primary)}.ds-field input:disabled{background:var(--color-neutral-soft);color:var(--color-muted)}.ds-field small{color:var(--color-muted);font-size:var(--font-small)}.ds-field input::placeholder{color:var(--color-muted);opacity:1}"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Активный раздел отмечен текстом и aria-current.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Разделы\"><a href=\"#dishes\" aria-current=\"page\">Блюда</a><a href=\"#ingredients\">Сырьё и упаковка</a></nav>",
+      "css": ".ds-nav{display:grid;gap:7px;font-family:var(--font-family)}.ds-nav a{min-height:var(--control-height);min-width:0;overflow-wrap:anywhere;padding:13px 15px;border-radius:var(--radius-control);color:var(--color-muted);font-size:var(--font-nav);font-weight:550;text-decoration:none}.ds-nav a[aria-current]{color:#264d35;background:var(--color-sage-soft)}.ds-nav a:hover{background:#f4f6f0}.ds-nav a:focus-visible{outline:var(--focus-ring);outline-offset:3px}"
+    },
+    {
+      "name": "Unique Ingredient Badge",
+      "kind": "chip",
+      "description": "Нейтральный факт о конкретном сырье, не финансовая зона.",
+      "html": "<span class=\"ds-unique\">Только в этом блюде</span>",
+      "css": ".ds-unique{display:inline-block;padding:var(--space-1) var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-control);background:var(--color-neutral-soft);color:var(--color-text-secondary);font:400 var(--font-small)/1.5 var(--font-family)}"
+    },
+    {
+      "name": "Work Panel",
+      "kind": "card",
+      "description": "Плоская рабочая поверхность с рамкой.",
+      "html": "<section class=\"ds-panel\"><h2>Действующая цена</h2><p>Цена товара за базовую единицу.</p></section>",
+      "css": ".ds-panel{padding:var(--space-6);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-panel);color:var(--color-text);font:var(--font-body)/1.5 var(--font-family)}.ds-panel h2{margin:0 0 var(--space-4);font-size:20px;line-height:1.3;font-weight:600}.ds-panel p{margin:0;color:var(--color-muted)}"
+    },
+    {
+      "name": "Component Group",
+      "kind": "custom",
+      "description": "Невыбираемый заголовок категории и отдельные варианты выбора; демонстрация стилей, без поискового контроллера.",
+      "html": "<div class=\"ds-options\" role=\"listbox\" aria-label=\"Компоненты\"><div role=\"group\" aria-label=\"Сырьё\"><div class=\"ds-group\">Сырьё</div><button type=\"button\" role=\"option\" aria-selected=\"true\">Мука пшеничная</button><button type=\"button\" role=\"option\" aria-selected=\"false\">Молоко</button></div></div>",
+      "css": ".ds-options{max-height:240px;overflow:auto;padding:6px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-panel);font-family:var(--font-family)}.ds-group{position:sticky;top:-6px;padding:10px 12px;background:var(--color-sage-active);color:var(--color-text-secondary);border-bottom:1px solid #c2cfb7;font-size:var(--font-small);line-height:20px;font-weight:700;cursor:default}.ds-options button{display:block;width:100%;min-height:var(--control-height);padding:10px 12px;border:0;border-radius:var(--radius-option);background:transparent;color:var(--color-text);font:var(--font-control)/1.5 var(--font-family);text-align:left;white-space:normal}.ds-options button[aria-selected=\"true\"]{font-weight:600;background:var(--color-sage-soft)}.ds-options button:hover{background:var(--color-sage-active)}.ds-options button:focus-visible{outline:var(--focus-ring);outline-offset:-3px}"
+    },
+    {
+      "name": "Discount Form",
+      "kind": "custom",
+      "description": "Подпись отдельной строкой; поле и Пересчитать рядом в сжимаемых колонках; ошибка и подсказка ниже на всю ширину.",
+      "html": "<form class=\"ds-discount ds-field\"><label for=\"ds-discount\">Скидка анализа, %</label><input id=\"ds-discount\" name=\"discount\" inputmode=\"decimal\" value=\"10\" aria-describedby=\"ds-discount-help\"><button type=\"button\" class=\"ds-button ds-secondary\"><span class=\"button-label\">Пересчитать</span></button><small id=\"ds-discount-help\">Скидка анализа не меняет сохранённую отпускную цену.</small></form>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:var(--space-2);font-family:var(--font-family)}.ds-field label{font-size:var(--font-small);font-weight:600;color:var(--color-text-secondary)}.ds-field input{min-height:var(--control-height);padding:11px 14px;border:1px solid var(--color-control-border);border-radius:var(--radius-control);background:#fdfefb;color:var(--color-text);font:var(--font-control)/24px var(--font-family)}.ds-field input:focus-visible{outline:var(--focus-ring);outline-offset:3px;border-color:var(--color-primary)}.ds-field input:disabled{background:var(--color-neutral-soft);color:var(--color-muted)}.ds-field small{color:var(--color-muted);font-size:var(--font-small)}.ds-field input::placeholder{color:var(--color-muted);opacity:1}.ds-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--control-height);max-width:100%;padding:var(--space-3) var(--space-4);border:1px solid transparent;border-radius:var(--radius-control);font:600 var(--font-button)/calc(20 / 14) var(--font-family);text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}.ds-button:focus-visible{outline:var(--focus-ring);outline-offset:3px}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.ds-icon{width:16px;height:16px;flex:0 0 16px}.ds-secondary{color:var(--color-primary-hover);background:var(--color-sage-active);border-color:var(--color-muted)}.ds-secondary:hover{color:var(--color-primary-hover);background:var(--color-sage-hover);border-color:var(--color-muted)}.ds-button:disabled{color:var(--color-muted);background:var(--color-neutral-soft);border-color:var(--color-border);cursor:not-allowed}.button-label{display:block;min-width:0}.ds-discount{display:grid;grid-template-columns:minmax(96px,160px) minmax(0,max-content);align-items:center;gap:var(--space-2) var(--space-3)}.ds-discount>label{grid-column:1/-1}.ds-discount>small,.ds-discount>.errorlist{grid-column:1/-1;min-width:0;margin:0;max-width:65ch}.ds-discount>.ds-button{justify-self:start}.ds-discount>input{box-sizing:border-box;width:100%}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Operate",
+    "overview": "Operate — рабочая среда для сравнения цен, составления рецептур и проверки себестоимости. Существующий образ сохранён: лесной зелёный акцент, тёплый светлый фон и белые поверхности. Интерфейс должен быть понятен человеку без технической подготовки: действие, единица измерения, состояние сохранения и последствия подтверждения видны рядом с данными.\n\nИсточник реализации — `tseh/static/tseh/app.css`. Блок `:root` и общие компоненты в начале файла задают нормативные размеры и состояния. Правила экранов определяют расположение, а не альтернативные размеры тех же кнопок. Этот документ фиксирует согласованное направление; он не является заявлением о выполненном визуальном тестировании.",
+    "keyCharacteristics": [
+      "Спокойные белые поверхности на фоне экрю.",
+      "Единые читаемые поля и кнопки.",
+      "Финансовые состояния отделены от нейтральных фактов."
+    ],
+    "rules": [],
+    "dos": [
+      "Do: начинать новый компонент с существующих токенов и классов; менять общую норму в её исходном правиле, не добавлять очередной переопределяющий блок в конец CSS.",
+      "Do: проверять обычное, hover, focus, disabled, error, empty и длинное содержимое, клавиатуру, ширины 360/760/1100 px и масштабирование текста.",
+      "Do: проверять контраст текста не ниже 4.5:1 и границ интерактивных элементов не ниже 3:1; проверять реальное сочетание цветов, а не только имя токена.",
+      "Do: проверять меню с несколькими категориями, длинными именами и отсутствием совпадений; проверять сохранение значений при смене единиц и отмене."
+    ],
+    "donts": [
+      "Don't: использовать финансовый зелёный статус для нейтральных фактов или уникальности записи.",
+      "Don't: вводить отдельный размер кнопки для каждой страницы, фиксированную высоту для многострочного текста, исчезающий фокус или новые внешние шрифты.",
+      "Don't: считать проверку CSS или DOM-модели подтверждением визуальной корректности. При недоступном браузере явно фиксировать отсутствие браузерной проверки."
+    ]
+  }
+}

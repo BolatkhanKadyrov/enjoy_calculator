@@ -1,0 +1,9 @@
+<form method="get" class="discount-form">
+  {% for name, value in list_params %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {{ discount_form.non_field_errors }}
+  {{ discount_form.discount.label_tag }}
+  {{ discount_form.discount }}
+  <button class="button secondary" type="submit"><span class="button-label">Пересчитать</span></button>
+  {{ discount_form.discount.errors }}
+  <p class="fine" id="{{ discount_form.discount.auto_id }}_helptext">{{ discount_form.discount.help_text }}</p>
+</form>

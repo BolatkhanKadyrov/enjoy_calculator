@@ -1,0 +1,5 @@
+{% extends 'tseh/base.html' %}{% block title %}Запись недоступна · Цех{% endblock %}{% block content %}
+<header class="page-heading"><div><h1>Запись уже недоступна</h1><p>Закупка, её строка или отдельная доставка была удалена либо перенесена. Откройте актуальный список.</p></div></header>
+{% for error in errors %}<p class="notice">{{ error }}</p>{% endfor %}
+<div class="form-actions"><a class="button primary" href="{% url 'purchase-list' %}"><span class="button-label">К закупкам</span></a><a class="link" href="{% url 'delivery-list' %}">Нераспределённая доставка</a></div>
+{% endblock %}

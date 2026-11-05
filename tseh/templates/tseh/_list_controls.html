@@ -1,0 +1,12 @@
+<form method="get" action="{{ list_reset_url }}" class="list-controls" data-list-filter>
+  {{ list_form.non_field_errors }}
+  {% for field in list_form.hidden_fields %}{{ field }}{{ field.errors }}{% endfor %}
+  <div class="list-fields">
+    {% for field in list_form.visible_fields %}{% include 'tseh/_field.html' %}{% endfor %}
+  </div>
+  <div class="list-actions">
+    <button type="submit" class="button secondary"><span class="button-label">Показать</span></button>
+    <a href="{{ list_reset_url }}" class="button link"><span class="button-label">Сбросить</span></a>
+  </div>
+</form>
+<p class="list-count" role="status">Найдено: {{ list_total }}</p>

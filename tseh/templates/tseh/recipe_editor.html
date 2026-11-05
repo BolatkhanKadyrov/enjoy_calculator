@@ -1,0 +1,46 @@
+{% extends 'tseh/base.html' %}{% load display %}{% block title %}{% if obj %}Изменить{% else %}Создать{% endif %} {% if is_preparation %}заготовку{% else %}блюдо{% endif %}{% if form.name.value %}: {{ form.name.value }}{% endif %} · Цех{% endblock %}{% block content %}
+<a class="back" href="{% url back %}">← К списку</a><header class="page-heading recipe-heading"><div><h1>{% if is_preparation %}{% if obj %}Изменить заготовку{% else %}Создать заготовку{% endif %}{% else %}{% if obj %}Изменить блюдо{% else %}Создать блюдо{% endif %}{% endif %}</h1><p>Сырьё — чистое сырое количество после очистки. Заготовки — количество готового продукта; потери повторно не применяются.</p></div></header>
+{% if need_ingredient %}<div class="notice">Сначала <a href="{% url 'ingredient-create' %}">добавьте ингредиент с закупочной ценой</a>.</div>{% endif %}
+<form method="post" id="recipe-form" data-draft-user="{{ draft_user_scope }}" data-draft-revision="{{ draft_revision }}" data-draft-epoch="{{ draft_epoch }}" data-draft-request="{{ draft_request }}" data-draft-submitted="{% if request.method == 'POST' %}true{% else %}false{% endif %}"><button type="submit" name="intent" value="preview" hidden tabindex="-1" aria-hidden="true">Рассчитать</button>{% csrf_token %}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}{{ form.non_field_errors }}
+<p id="draft-status" class="draft-status" role="status" aria-live="polite"></p>
+<noscript><p class="notice">Для восстановления черновика после обновления страницы (F5) нужен JavaScript. Без него можно заполнять и сохранять рецептуру, но обновление страницы может потерять несохранённый ввод.</p></noscript>
+<section class="panel padded">
+  <h2>{% if is_preparation %}Название и выход{% else %}Блюдо и отпускная цена{% endif %}</h2>
+  {% if is_preparation %}
+  <div class="preparation-fields">
+    {% include 'tseh/_field.html' with field=form.name field_class='preparation-name' %}
+    {% include 'tseh/_field.html' with field=form.output_quantity field_class='preparation-quantity' %}
+    {% include 'tseh/_field.html' with field=form.output_unit field_class='preparation-unit' %}
+  </div>
+  {% else %}
+  <div class="form-grid">{% for field in form.visible_fields %}{% include 'tseh/_field.html' %}{% endfor %}</div>
+  <p class="fine">«По умолчанию» наследует соответствующий <a class="text-link" href="{% url 'thresholds' %}">общий порог</a>. Собственное значение сохраняется независимо.</p>
+  {% endif %}
+</section>
+<section class="panel padded recipe-panel"><div class="panel-heading plain"><h2>Состав</h2><span class="muted">{% if is_preparation %}На один замес{% else %}На одну продаваемую единицу{% endif %}</span></div>{{ formset.management_form }}{{ formset.non_form_errors }}<div id="recipe-lines">{% for line in formset %}{% include 'tseh/_line_form.html' %}{% endfor %}</div><p id="line-status" class="fine" role="status">{{ line_notice }}</p><p id="line-empty" class="notice" hidden>Добавьте хотя бы один компонент, чтобы рассчитать рецептуру.</p><p id="line-limit" class="notice" hidden>Можно добавить не более 100 компонентов. Удалите строку, чтобы добавить другую.</p><button type="submit" name="add_line" value="1" formnovalidate class="button secondary" id="add-line">{% include 'tseh/_icon_plus.html' %}<span class="button-label">Добавить компонент</span></button><template id="empty-line">{% include 'tseh/_line_form.html' with line=formset.empty_form %}</template></section>
+{% if preview %}<section class="panel padded preview" id="preview" aria-live="polite"><p id="preview-stale" class="notice" role="status" hidden>Расчёт устарел: состав или параметры изменены. Пересчитайте перед сохранением.</p><h2>Предварительный расчёт</h2><div class="preview-values">{% if previous %}<div><small>Сейчас</small><strong>{{ previous.raw|cash }} ₸</strong></div><span class="preview-arrow">→</span>{% endif %}<div><small>{% if is_preparation %}Стоимость нового замеса{% else %}Себестоимость порции{% endif %}</small><strong>{{ preview.raw|cash }} ₸</strong></div>{% if previous and not is_preparation %}<div><small>Изменение итоговой суммы</small><strong>{{ difference|cash }} ₸</strong></div>{% endif %}</div>
+{% if is_preparation %}<p>Цена готовой заготовки: <strong>{{ preview_unit_price|cash }} ₸/{{ output_unit|unit_label }}</strong></p>{% endif %}
+{% if previous_rows %}<details><summary>Текущий состав</summary><ul class="preview-lines">{% for line, cost in previous_rows %}<li><span>{{ line.component.name }} · {{ line|quantity }}</span><strong>{{ cost|cash }} ₸</strong></li>{% endfor %}</ul></details>{% endif %}
+<h3 class="recipe-subheading">Предлагаемый состав</h3><ul class="preview-lines">{% for row, cost in preview_rows %}<li><span>{{ row.component.name }} · {{ row.quantity|number }} {{ row.unit|unit_label }}</span><strong>{{ cost|cash }} ₸</strong></li>{% endfor %}</ul><p class="fine">Стоимость строк и заготовок сохраняет полную точность. Округлённые подписи могут не складываться в показанный итог. Изменения ещё не сохранены.</p><input type="hidden" name="preview_token" value="{{ preview_token }}"></section>
+{% if assessment %}{% include 'tseh/_assessment.html' %}{% endif %}
+{% if is_preparation and obj %}<section class="panel padded recipe-panel"><h2>Последствия изменения</h2><p class="muted">Сравнение при общей скидке {{ discount|number }}%. Изменение выхода или количества — изменение рецептуры, а не закупочной цены.</p>
+{% for prep, before, after, before_unit, after_unit in prep_impacts %}<div class="impact-row"><span>{{ prep.name }}</span><span>{{ before|cash }} ₸/{{ before_unit|unit_label }} → <strong>{{ after|cash }} ₸/{{ after_unit|unit_label }}</strong></span></div>{% endfor %}
+{% for dish, before, after, old_zone, new_zone in dish_impacts %}<div class="impact-row"><a class="text-link" href="{% url 'dish-detail' dish.pk %}">{{ dish.name }}</a><span>{{ before.raw|cash }} → <strong>{{ after.raw|cash }} ₸</strong></span><span class="zone {{ old_zone.zone }}">{{ old_zone.label }}</span> → <span class="zone {{ new_zone.zone }}">{{ new_zone.label }}</span></div>{% endfor %}{% if not dish_impacts %}<p class="muted">Зависимых блюд пока нет.</p>{% endif %}</section>{% endif %}{% endif %}
+<div class="editor-actions">
+  <div class="form-actions">
+    <button type="submit" name="intent" value="preview" class="button {% if preview %}secondary{% else %}primary{% endif %}"><span class="button-label">{% if preview %}Пересчитать{% else %}Рассчитать и сравнить{% endif %}</span></button>
+    {% if preview %}<button type="submit" name="intent" value="save" class="button primary"><span class="button-label">{% if is_preparation %}Сохранить заготовку{% else %}Сохранить блюдо{% endif %}</span></button>{% endif %}
+    <button type="button" class="button secondary" data-refresh-draft hidden><span class="button-label">Обновить данные</span></button>
+    <a href="{% url back %}" class="button link"><span class="button-label">Отмена</span></a>
+    <details class="reset-action">
+      <summary class="button link"><span class="button-label">Сбросить черновик</span></summary>
+      <div class="reset-confirmation">
+        <p>Черновик будет полностью удалён: несохранённые поля, состав и предпросмотр. {% if obj %}Откроется последняя сохранённая рецептура.{% else %}Откроется пустая форма.{% endif %}</p>
+        <a href="{{ request.path }}" class="button link" data-reset-form data-confirm-message="Сбросить черновик? Все несохранённые поля, состав и предпросмотр будут потеряны."><span class="button-label">Сбросить черновик</span></a>
+        <p class="fine">Чтобы продолжить редактирование, закройте этот блок.</p>
+      </div>
+    </details>
+  </div>
+  <p class="fine">«Обновить данные» загрузит актуальные данные с сохранением черновика. «Сбросить черновик» полностью удалит несохранённый ввод и предпросмотр.</p>
+</div>
+</form>{% endblock %}
