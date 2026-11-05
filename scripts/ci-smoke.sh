@@ -114,12 +114,13 @@ address=$(docker port "$web" 8087/tcp)
 python3 - "http://$address" <<'PY'
 import gzip
 from html.parser import HTMLParser
+from http.client import HTTPException
 from http.cookies import SimpleCookie
 import json
 import re
 import sys
 import time
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 base = sys.argv[1]
@@ -146,7 +147,9 @@ for attempt in range(60):
         status, headers, body = request("/health/", health_host=True)
         if status == 200:
             break
-    except (URLError, TimeoutError):
+    # Docker can accept a connection before the Gunicorn worker is listening.
+    # Retry startup resets/disconnects only here; later assertions remain strict.
+    except (OSError, HTTPException):
         pass
     time.sleep(1)
 else:
