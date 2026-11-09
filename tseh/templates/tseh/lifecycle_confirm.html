@@ -1,6 +1,6 @@
 {% extends 'tseh/base.html' %}{% block title %}{{ title }} — {{ obj.name }} · Цех{% endblock %}{% block content %}
-<a class="back" href="{% url 'dish-detail' obj.pk %}">← К блюду</a>
+{% if access.dishes_view %}<a class="back" href="{% url 'dish-detail' obj.pk %}">← К блюду</a>{% else %}<span>← К блюду</span>{% endif %}
 <header class="page-heading"><div><h1>{{ title }}</h1><p>{{ obj.name }} · {{ obj.get_status_display }}</p></div></header>
 <section class="panel padded"><p>{{ explanation }}</p><form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
-{% if can_apply %}<div class="form-actions"><button class="button {% if danger %}danger{% else %}primary{% endif %}" type="submit"><span class="button-label">{{ title }}</span></button><a class="button link" href="{% url 'dish-detail' obj.pk %}"><span class="button-label">Отмена</span></a></div>{% else %}<p class="notice">Состояние блюда изменилось. Вернитесь в его карточку и выберите доступное действие.</p>{% endif %}
+{% if can_apply %}<div class="form-actions"><button class="button {% if danger %}danger{% else %}primary{% endif %}" type="submit"><span class="button-label">{{ title }}</span></button>{% if access.dishes_view %}<a class="button link" href="{% url 'dish-detail' obj.pk %}"><span class="button-label">Отмена</span></a>{% else %}<span><span class="button-label">Отмена</span></span>{% endif %}</div>{% else %}<p class="notice">Состояние блюда изменилось. Вернитесь в его карточку и выберите доступное действие.</p>{% endif %}
 </form></section>{% endblock %}

@@ -223,6 +223,8 @@ def test_discount_user_signature_and_changed_dependency_reject_confirmation(auth
     response = preview(authenticated, initial(authenticated, [row(key)]))
     body = {**controls(response), "intent": "confirm"}
     other = get_user_model().objects.create_user(username="scenario-other", password="strong-test-password")
+    from tseh.models import AccountAccess
+    AccountAccess.objects.create(user=other, is_owner=True)
     authenticated.force_login(other)
     assert authenticated.post(reverse("scenario-editor"), body).status_code == 400 and facts() == before
     response = preview(authenticated, initial(authenticated, [row(key)]))

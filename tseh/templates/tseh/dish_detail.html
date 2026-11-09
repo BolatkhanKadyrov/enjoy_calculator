@@ -2,8 +2,8 @@
 <a class="back" href="{% if obj.status == 'active' %}{% url 'dashboard' %}{% else %}{% url 'archive' %}?status={{ obj.status }}{% endif %}">← {% if obj.status == 'active' %}Все блюда{% else %}Архив и корзина{% endif %}</a>
 <header class="page-heading">
   <div><h1>{{ obj.name }}</h1><p>Расчёт по действующим закупочным ценам.</p></div>
-  <div class="heading-actions">{% if obj.status != 'trashed' %}<a href="{% url 'dish-edit' obj.pk %}" class="button secondary"><span class="button-label">Изменить рецептуру</span></a>{% endif %}
-  {% if obj.status == 'active' %}<a class="button link" href="{% url 'dish-transition' obj.pk 'archive' %}"><span class="button-label">Убрать в архив</span></a>{% elif obj.status == 'archived' %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'activate' %}"><span class="button-label">Вернуть в ассортимент</span></a><a class="button link" href="{% url 'dish-transition' obj.pk 'trash' %}"><span class="button-label">В корзину</span></a>{% else %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'restore' %}"><span class="button-label">Восстановить в архив</span></a>{% endif %}</div>
+  <div class="heading-actions">{% if obj.status != 'trashed' %}{% if access.dishes_change %}<a href="{% url 'dish-edit' obj.pk %}" class="button secondary"><span class="button-label">Изменить рецептуру</span></a>{% endif %}{% endif %}
+  {% if obj.status == 'active' %}{% if access.dishes_delete %}<a class="button link" href="{% url 'dish-transition' obj.pk 'archive' %}"><span class="button-label">Убрать в архив</span></a>{% endif %}{% elif obj.status == 'archived' %}{% if access.dishes_change %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'activate' %}"><span class="button-label">Вернуть в ассортимент</span></a>{% endif %}{% if access.dishes_delete %}<a class="button link" href="{% url 'dish-transition' obj.pk 'trash' %}"><span class="button-label">В корзину</span></a>{% endif %}{% else %}{% if access.dishes_change %}<a class="button primary" href="{% url 'dish-transition' obj.pk 'restore' %}"><span class="button-label">Восстановить в архив</span></a>{% endif %}{% endif %}</div>
 </header>
 {% if obj.status == 'archived' %}<p class="notice">Блюдо в архиве и не входит в активный ассортимент. Расчёт ниже использует текущие цены.</p>{% elif obj.status == 'trashed' %}<p class="notice">Блюдо в корзине. Срок окончательного удаления: {{ obj.purge_at|date:'d.m.Y H:i' }}. До очередной очистки его можно восстановить в архив.</p>{% endif %}
 <div class="cost-banner"><div><span>Себестоимость порции</span><strong>{{ result.raw|cash }} <small>₸</small></strong></div><div><span>Отпускная цена</span><strong>{{ obj.base_price|cash }} <small>₸</small></strong></div><div class="cost-note">Первичные потери учтены.<br>Итог округлён после сложения компонентов.</div></div>
@@ -25,7 +25,7 @@
               <summary>Сырьё в заготовке{% if line.unique_count %} · только в этом блюде: {{ line.unique_count }}{% endif %}</summary>
               <ul>
                 {% for ingredient, is_unique in line.ingredient_breakdown %}
-                <li><a href="{% url 'ingredient-detail' ingredient.pk %}">{{ ingredient.name }}</a>{% if is_unique %} <span class="uniqueness-badge">Только в этом блюде</span>{% endif %}</li>
+                <li>{% if access.ingredients_view %}<a href="{% url 'ingredient-detail' ingredient.pk %}">{{ ingredient.name }}</a>{% else %}<span>{{ ingredient.name }}</span>{% endif %}{% if is_unique %} <span class="uniqueness-badge">Только в этом блюде</span>{% endif %}</li>
                 {% endfor %}
               </ul>
             </details>

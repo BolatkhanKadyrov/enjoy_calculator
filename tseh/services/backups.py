@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 
 from tseh.calculation import normalized
+from tseh.audit_actor import current_actor
 from tseh.calculation.purchases import aggregate_lines
 from tseh.calculation.recipes import Component, Item, Prep, RecipeGraph
 from tseh.models import (AuditEntry, Dish, DishLine, DomainState, GlobalSettings,
@@ -258,6 +259,9 @@ def _rows(document):
         keys = set(fields) | ({"remaining_microseconds"} if model is Dish else set())
         found = {}
         for row in values:
+            # Old v1 copies have no named author; never invent one.
+            if model is AuditEntry and isinstance(row, dict) and set(row) == keys - {"actor_name"}:
+                row["actor_name"] = ""
             if not isinstance(row, dict) or set(row) != keys:
                 _fail(f"Неполный или неизвестный набор полей в разделе {name}.")
             obj = model(**{key: _field_value(field, row[key]) for key, field in fields.items()})
@@ -734,7 +738,7 @@ def apply_restore(session_id, user, *, review_token, confirm_download=False):
         state.revision += 1
         state.save(update_fields=["epoch", "revision"])
         AuditEntry.objects.create(group=obj.pk, object_type="DomainState", object_id="1",
-            object_name="Восстановление данных", action="restore", source="import",
+            object_name="Восстановление данных", action="restore", source="import", actor_name=current_actor(),
             before={"snapshot_at": obj.previous["snapshot_at"], "counts": data_summary(obj.previous)},
             after={"snapshot_at": document["snapshot_at"], "restored_at": now.isoformat(),
                 "counts": data_summary(document), "source_hash": obj.source_hash, "trash_deadlines": deadlines})

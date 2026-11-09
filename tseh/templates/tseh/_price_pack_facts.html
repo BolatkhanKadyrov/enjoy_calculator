@@ -3,7 +3,7 @@
 {% if price.pack_size is not None %}<div><dt>Фасовка</dt><dd>{{ price.pack_size|number }} {{ obj.get_unit_display }}</dd></div><div><dt>Цена упаковки без доставки</dt><dd>{{ price.pack_price|cash }} ₸</dd></div>{% else %}<div><dt>Исходные строки</dt><dd>Несколько строк одной позиции; подробности в закупке</dd></div>{% endif %}
 <div><dt>Товар без доставки</dt><dd>{{ price|goods_unit|cash }} ₸/{{ obj.get_unit_display }}</dd></div>
 <div><dt>Доставка на единицу</dt><dd>{{ price|delivery_unit|cash }} ₸/{{ obj.get_unit_display }}</dd></div>
-<div><dt>Источник</dt><dd><a href="{% url 'purchase-detail' price.purchase_id %}">Закупка от {{ price.price_date|date:'d.m.Y' }}</a></dd></div>
+<div><dt>Источник</dt><dd>{% if access.purchases_view %}<a href="{% url 'purchase-detail' price.purchase_id %}">Закупка от {{ price.price_date|date:'d.m.Y' }}</a>{% else %}<span>Закупка от {{ price.price_date|date:'d.m.Y' }}</span>{% endif %}</dd></div>
 {% else %}
 <div><dt>Фасовка</dt><dd>{{ price.pack_size|number }} {{ obj.get_unit_display }}</dd></div><div><dt>Цена упаковки</dt><dd>{{ price.pack_price|cash }} ₸</dd></div>
 {% endif %}

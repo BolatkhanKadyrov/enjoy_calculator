@@ -6,7 +6,7 @@ from copy import copy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import signing
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -90,6 +90,13 @@ def price_editor(request, pk, action, price_id=None):
     if request.method == "POST" and request.POST.get("intent") == "confirm":
         payload = confirmed_payload(request, pk, price_id, action)
         if payload is not None:
+            if action == "create" and payload.get("apply") and not request.access.prices_change:
+                raise PermissionDenied
+            if action == "delete":
+                if (payload.get("replacement_price_id") or payload.get("replacement_data")) and not request.access.prices_change:
+                    raise PermissionDenied
+                if payload.get("replacement_data") and not request.access.prices_add:
+                    raise PermissionDenied
             try:
                 result = execute(action, pk, price_id, payload)
                 messages.success(request, {"create": "Цена сохранена.", "apply": "Действующая цена изменена.",
@@ -108,6 +115,11 @@ def price_editor(request, pk, action, price_id=None):
             messages.info(request, "Эта цена рассчитана из закупки. Исправьте закупку или удалите нужную строку в её составе.")
             return redirect("purchase-edit" if action == "correct" else "purchase-detail", pk=price.purchase_id)
         is_current = bool(price and obj.current_price_id == price.pk)
+        if action == "delete" and is_current:
+            if not request.access.prices_change:
+                raise PermissionDenied
+            if request.method == "POST" and request.POST.get("replacement_mode") == "new" and not request.access.prices_add:
+                raise PermissionDenied
         discount, _ = analysis_discount(request)
         initial = {"token": commands.stamp(state)} if request.method == "GET" else None
         data = request.POST if request.method == "POST" else None
@@ -115,9 +127,11 @@ def price_editor(request, pk, action, price_id=None):
             if initial is not None and price:
                 initial.update({name: getattr(price, name) for name in prices.PRICE_FIELDS})
                 initial["supplier"] = price.supplier_id
-            form = PriceForm(data, initial=initial, ingredient=obj, include_apply=action == "create", include_reason=action == "correct")
+            form = PriceForm(data, initial=initial, ingredient=obj, include_apply=action == "create" and request.access.prices_change, include_reason=action == "correct")
         elif action == "delete":
             form = PriceDeleteForm(data, initial=initial, ingredient=obj, price=price)
+            if "replacement_mode" in form.fields and not request.access.prices_add:
+                form.fields["replacement_mode"].choices = [choice for choice in form.fields["replacement_mode"].choices if choice[0] != "new"]
         else:
             form = PriceApplyForm(data, initial=initial)
         replacement_form = PriceDataForm(data, prefix="replacement", ingredient=obj,
@@ -152,7 +166,7 @@ def price_editor(request, pk, action, price_id=None):
                     proposed._state.fields_cache.pop("supplier", None)
                     payload.update(data=values, confirm_zero=form.cleaned_data["confirm_zero"])
                     if action == "create":
-                        will_apply = form.cleaned_data["apply_now"]
+                        will_apply = form.cleaned_data.get("apply_now", False)
                         payload["apply"] = will_apply
                         hypothetical = not will_apply
                     else:

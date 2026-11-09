@@ -6,6 +6,7 @@ from django.db.models import Q
 
 from .transfer import RestoreSession
 from .security import LoginThrottle
+from .accounts import AccountAccess, AccountEvent
 
 CATALOG_STATUSES = [("active", "В справочнике"), ("trashed", "В корзине")]
 
@@ -314,6 +315,7 @@ class AuditEntry(models.Model):
     before = models.JSONField(null=True)
     after = models.JSONField(null=True)
     source = models.CharField(max_length=30, default="manual", choices=SOURCES)
+    actor_name = models.CharField("Сотрудник", max_length=150, blank=True, default="", db_default="")
 
     class Meta:
         ordering = ["-at", "-id"]

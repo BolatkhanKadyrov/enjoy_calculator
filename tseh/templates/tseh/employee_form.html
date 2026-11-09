@@ -1,0 +1,40 @@
+{% extends 'tseh/base.html' %}{% load static %}
+{% block title %}{{ title }} · Цех{% endblock %}
+{% block content %}
+<div class="employees-page">
+  <a class="back" href="{% url 'employee-list' %}">← Сотрудники</a>
+  <header class="page-heading"><div><h1>{{ title }}</h1><p>{% if employee %}{{ employee.username }}. Изменение прав, логина или пароля завершит действующие входы.{% else %}Задайте данные для входа и выберите, что сотрудник сможет делать.{% endif %}</p></div></header>
+  <form method="post" autocomplete="off" class="employee-form">
+    {% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
+    <section class="panel padded" aria-labelledby="employee-account-heading">
+      <h2 id="employee-account-heading">Данные сотрудника</h2>
+      <div class="form-grid">
+        {% include 'tseh/_field.html' with field=form.display_name %}
+        {% include 'tseh/_field.html' with field=form.username %}
+      </div>
+      <h3 class="employee-password-heading">{% if employee %}Новый пароль{% else %}Пароль для входа{% endif %}</h3>
+      {% if not employee %}<p class="fine">Передайте логин и пароль сотруднику лично. Сохранённый пароль нельзя посмотреть.</p>{% endif %}
+      <div class="form-grid">
+        {% include 'tseh/_field.html' with field=form.password1 %}
+        {% include 'tseh/_field.html' with field=form.password2 %}
+      </div>
+    </section>
+    <section class="panel padded" aria-labelledby="employee-rights-heading">
+      <h2 id="employee-rights-heading">Права доступа</h2>
+      <p class="employee-permission-intro" id="employee-rights-help">Отметьте только нужные действия. Для них автоматически откроется просмотр связанных данных: например, для составления рецептуры — справочники компонентов.</p>
+      {{ form.permissions.errors }}
+      <div class="employee-permissions" aria-describedby="employee-rights-help">
+        {% for group in permission_groups %}<fieldset class="employee-permission-group">
+          <legend>{{ group.label }}</legend>
+          {% if group.description %}<p class="fine">{{ group.description }}</p>{% endif %}
+          <div class="employee-permission-options">
+            {% for option in group.options %}<label class="employee-permission" for="{{ option.id }}"><input id="{{ option.id }}" type="checkbox" name="permissions" value="{{ option.key }}"{% if option.checked %} checked{% endif %}><span>{{ option.label }}</span></label>{% endfor %}
+          </div>
+        </fieldset>{% endfor %}
+      </div>
+      <p class="fine">Управление сотрудниками, пороги зон, полные копии и восстановление доступны только администратору.</p>
+    </section>
+    <div class="form-actions"><button class="button primary" type="submit"><span class="button-label">{% if employee %}Сохранить доступ{% else %}Добавить сотрудника{% endif %}</span></button><a class="button link" href="{% url 'employee-list' %}"><span class="button-label">Отмена</span></a></div>
+  </form>
+</div>
+{% endblock %}

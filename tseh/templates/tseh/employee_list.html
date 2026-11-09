@@ -1,0 +1,38 @@
+{% extends 'tseh/base.html' %}{% load static %}
+{% block title %}Сотрудники · Цех{% endblock %}
+{% block content %}
+<div class="employees-page">
+  <header class="page-heading">
+    <div><h1>Сотрудники</h1><p>Отдельный вход и права доступа для каждого сотрудника.</p></div>
+    <a class="button primary" href="{% url 'employee-create' %}">{% include 'tseh/_icon_plus.html' %}<span class="button-label">Добавить сотрудника</span></a>
+  </header>
+  <p class="employee-owner">Администратор: <strong>{{ owner.username }}</strong>. Управляет сотрудниками, порогами зон и резервными копиями.</p>
+  <section class="panel" aria-labelledby="employee-list-heading">
+    <div class="panel-heading"><h2 id="employee-list-heading">Учётные записи</h2></div>
+    <nav class="employee-filters" aria-label="Состояние сотрудников">
+      <a href="{% url 'employee-list' %}?status=active" {% if status == 'active' %}aria-current="page"{% endif %}>Активные</a>
+      <a href="{% url 'employee-list' %}?status=inactive" {% if status == 'inactive' %}aria-current="page"{% endif %}>Отключённые</a>
+      <a href="{% url 'employee-list' %}?status=all" {% if status == 'all' %}aria-current="page"{% endif %}>Все</a>
+    </nav>
+    {% if employees %}
+    <div class="table-wrap"><table class="employee-table">
+      <thead><tr><th scope="col">Сотрудник</th><th scope="col">Логин</th><th scope="col">Доступ</th><th scope="col">Действия</th></tr></thead>
+      <tbody>{% for employee in employees %}<tr>
+        <td class="employee-name">{{ employee.first_name|default:employee.username }}</td>
+        <td><span class="employee-mobile-label" aria-hidden="true">Логин</span>{{ employee.username }}</td>
+        <td><span class="employee-mobile-label" aria-hidden="true">Доступ</span>{% if employee.is_active %}Активен{% if not employee.account_access.permissions %}<small class="sub">Права пока не назначены</small>{% endif %}{% else %}<span class="tag">Вход отключён</span>{% endif %}</td>
+        <td><div class="row-actions">{% if employee.is_active %}<a href="{% url 'employee-edit' employee.pk %}">Изменить доступ</a><a href="{% url 'employee-disable' employee.pk %}">Удалить сотрудника</a>{% else %}<span class="muted">История сохранена</span>{% endif %}</div></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}
+    <div class="empty"><h3>{% if status == 'inactive' %}Отключённых сотрудников нет{% else %}Сотрудников пока нет{% endif %}</h3><p>{% if status == 'inactive' %}После удаления сотрудник появится здесь. Его вход будет отключён, а история действий сохранится.{% else %}Добавьте сотрудника, задайте логин и пароль, затем выберите доступные разделы и действия.{% endif %}</p></div>
+    {% endif %}
+    <p class="table-note">Удаление отключает вход и завершает все сеансы сотрудника. Его действия остаются в журнале.</p>
+  </section>
+  <section class="panel padded employee-events" aria-labelledby="employee-events-heading">
+    <h2 id="employee-events-heading">Последние изменения доступа</h2>
+    {% if events %}<ol>{% for event in events %}<li><div><strong>{{ event.target_name }}</strong><span>{{ event.get_action_display }} · {{ event.actor_name }}</span></div><time datetime="{{ event.at|date:'c' }}">{{ event.at|date:'d.m.Y H:i' }}</time></li>{% endfor %}</ol>
+    {% else %}<p class="muted">Здесь появятся добавление сотрудников, изменения прав и отключения входа.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

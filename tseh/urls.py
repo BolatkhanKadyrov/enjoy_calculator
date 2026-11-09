@@ -1,8 +1,14 @@
 from django.urls import path
 from tseh import views
 from tseh import price_views, purchase_views, scenario_views, lifecycle_views, transfer_views
+from tseh import employee_views
 
 urlpatterns = [
+    path("no-access/", views.access_unavailable, name="access-unavailable"),
+    path("employees/", employee_views.employee_list, name="employee-list"),
+    path("employees/new/", employee_views.employee_create, name="employee-create"),
+    path("employees/<int:pk>/edit/", employee_views.employee_edit, name="employee-edit"),
+    path("employees/<int:pk>/disable/", employee_views.employee_disable, name="employee-disable"),
     path("data/", transfer_views.exchange, name="exchange"),
     path("data/export.json", transfer_views.export_json, name="export-json"),
     path("data/export.xlsx", transfer_views.export_xlsx, name="export-xlsx"),

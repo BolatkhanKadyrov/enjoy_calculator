@@ -1,0 +1,6 @@
+{% extends 'tseh/base.html' %}
+{% block title %}Нет доступа · Цех{% endblock %}
+{% block content %}
+<header class="page-heading"><div><h1>Нет доступа</h1><p>У вашей учётной записи нет права на этот раздел или действие.</p></div></header>
+<section class="panel padded"><p>Если доступ нужен для работы, обратитесь к администратору.</p><a class="button secondary" href="{{ access.home_url|default:'/' }}"><span class="button-label">К доступным разделам</span></a></section>
+{% endblock %}

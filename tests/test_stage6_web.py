@@ -183,6 +183,8 @@ def test_access_csrf_restore_owner_and_download_methods(authenticated, user, sta
         assert strict.post(reverse(name, args=[session.pk])).status_code == 403
     assert strict.post(reverse("exchange"), {}).status_code == 403
     other = get_user_model().objects.create_user(username="other", password="long-test-password")
+    from tseh.models import AccountAccess
+    AccountAccess.objects.create(user=other, is_owner=True)
     authenticated.force_login(other)
     assert authenticated.get(reverse("restore-review", args=[session.pk])).status_code == 400
     assert authenticated.post(reverse("restore-download", args=[session.pk])).status_code == 400

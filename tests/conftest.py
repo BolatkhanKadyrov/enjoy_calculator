@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
-from tseh.models import DomainState
+from tseh.models import AccountAccess, DomainState
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -16,7 +16,9 @@ def state(db):
 
 @pytest.fixture
 def user(db):
-    return get_user_model().objects.create_user(username="test-team", password="test-only-strong-password")
+    user = get_user_model().objects.create_user(username="test-team", password="test-only-strong-password")
+    AccountAccess.objects.create(user=user, is_owner=True)
+    return user
 
 
 @pytest.fixture

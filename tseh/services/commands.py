@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from tseh.calculation import normalized
+from tseh.audit_actor import current_actor
 from tseh.calculation.recipes import Prep
 from tseh.calculation.pricing import effective_thresholds, threshold_state
 from tseh.models import AuditEntry, Dish, DishLine, DomainState, GlobalSettings, Ingredient, Operation, Preparation, PreparationLine, Price, PriceApplication, SETTINGS_ID, Supplier
@@ -44,7 +45,8 @@ def snapshot(obj, fields):
 
 def audit(group, obj, action, before, after, name=None):
     AuditEntry.objects.create(group=group, object_type=obj.__class__.__name__, object_id=str(obj.pk),
-        object_name=name or str(obj), action=action, before=before, after=after, source=_audit_source.get())
+        object_name=name or str(obj), action=action, before=before, after=after, source=_audit_source.get(),
+        actor_name=current_actor())
 
 
 def command(token, action, payload, callback):

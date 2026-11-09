@@ -4,7 +4,7 @@ import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import signing
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.forms.utils import ErrorList
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
@@ -77,6 +77,16 @@ def confirm_before_lookup(request, action, pk=None, line_id=None):
     payload = confirmation(request, action, pk, line_id)
     if payload is None:
         return None, ["Данные изменились или подтверждение недействительно. Проверьте новый предпросмотр и подтвердите ещё раз."]
+    if action == "line-delete":
+        # Check signed options before replay: the deleted purchase/line may no
+        # longer exist, but the current employee permissions still apply.
+        options = payload.get("options", {})
+        has_new = options.get("replacement_data") is not None
+        has_replacement = has_new or options.get("replacement_price_id") is not None
+        if has_replacement and not request.access.prices_change:
+            raise PermissionDenied
+        if has_new and not request.access.prices_add:
+            raise PermissionDenied
     try:
         result = execute(action, pk, line_id, payload)
         messages.success(request, {"purchase-create": "Закупка сохранена. Цены доступны как предложения.",
@@ -256,11 +266,19 @@ def purchase_line_delete(request, pk, line_id):
         removed_price = Price.objects.get(purchase=obj, ingredient=line.ingredient)
         needs_replacement = (line.ingredient.current_price_id == removed_price.pk
             and not obj.lines.filter(ingredient=line.ingredient).exclude(pk=line.pk).exists())
+        if needs_replacement:
+            if not request.access.prices_change:
+                raise PermissionDenied
+            if request.method == "POST" and request.POST.get("replacement_mode") == "new" and not request.access.prices_add:
+                raise PermissionDenied
         data = request.POST if request.method == "POST" else None
         form = PurchaseLineDeleteForm(data, initial={"token": commands.stamp(state)}, last_line=last_line,
             replacement_ingredient=line.ingredient if needs_replacement else None, removed_price=removed_price)
+        if needs_replacement and not request.access.prices_add:
+            form.fields["replacement_mode"].choices = [choice for choice in form.fields["replacement_mode"].choices
+                                                       if choice[0] != "new"]
         replacement_form = PriceDataForm(data, prefix="replacement", ingredient=line.ingredient,
-            use_required_attribute=False) if needs_replacement else None
+            use_required_attribute=False) if needs_replacement and request.access.prices_add else None
         context = {"obj": obj, "line": line, "form": form, "replacement_form": replacement_form,
             "last_line": last_line, "needs_replacement": needs_replacement, "active": "purchases",
             "discount": analysis_discount(request)[0], "action": action}

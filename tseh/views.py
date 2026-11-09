@@ -45,9 +45,19 @@ def preview_digest(payload):
 
 def confirmed(request, payload):
     try:
-        return signing.loads(request.POST.get("preview_token", ""), salt="preview") == preview_digest(payload)
+        return signing.loads(request.POST.get("preview_token", ""), salt="preview", max_age=3600) == preview_identity(request, payload)
     except signing.BadSignature:
         return False
+
+
+def preview_identity(request, payload):
+    return {"digest": preview_digest(payload), "user": str(request.user.pk), "path": request.path}
+
+
+@login_required
+@require_GET
+def access_unavailable(request):
+    return render(request, "tseh/access_unavailable.html", status=403)
 
 
 def analysis_discount(request):
@@ -191,8 +201,8 @@ def ingredient_detail(request, pk):
     with read_snapshot():
         obj = get_object_or_404(Ingredient.objects.select_related("current_price__supplier"), pk=pk)
         graph = catalog()
-        dishes = [dish for dish in Dish.objects.prefetch_related("lines") if obj.pk in graph.contributions(components(dish.lines.all()))]
-        preparations = [prep for prep in Preparation.objects.all() if obj.pk in graph.leaf_costs[prep.pk]]
+        dishes = [dish for dish in Dish.objects.prefetch_related("lines") if obj.pk in graph.contributions(components(dish.lines.all()))] if request.access.dishes_view else []
+        preparations = [prep for prep in Preparation.objects.all() if obj.pk in graph.leaf_costs[prep.pk]] if request.access.preparations_view else []
         return render(request, "tseh/ingredient_detail.html", {"obj": obj, "price": obj.current_price,
             "unit_price": obj.current_price.effective_unit_price, "dishes": dishes, "preparations": preparations, "active": "ingredients"})
 
@@ -362,7 +372,7 @@ def recipe_form(request, pk, is_preparation):
                             if any(row.kind == "preparation" and row.key in affected for row in recipe):
                                 before, after = old_graph.calculate(recipe), new_graph.calculate(recipe)
                                 dish_impacts.append((dish, before, after, price_assessment(dish, before, discount, settings), price_assessment(dish, after, discount, settings)))
-                        context["dish_impacts"] = dish_impacts
+                        context["dish_impacts"] = dish_impacts if request.access.dishes_view else []
                 else:
                     proposed = copy(obj) if obj else Dish()
                     commands.validate_dish_thresholds(proposed, data, is_new=not pk)
@@ -370,7 +380,7 @@ def recipe_form(request, pk, is_preparation):
                     result = old_graph.calculate(proposed_components(lines))
                     context["assessment"] = price_assessment(proposed, result, discount, general_settings())
                 context.update(preview=result, preview_rows=list(zip(clean, result.rows)),
-                               preview_token=signing.dumps(preview_digest(payload), salt="preview"))
+                               preview_token=signing.dumps(preview_identity(request, payload), salt="preview"))
                 if obj:
                     context["previous"] = old_graph.prep_costs[pk] if is_preparation else dish_calculation(obj, old_graph)[0]
                     context["previous_rows"] = list(zip(obj.lines.select_related("ingredient", "preparation"), context["previous"].rows))
@@ -406,7 +416,7 @@ def preparation_detail(request, pk):
         graph = catalog()
         result = graph.prep_costs[pk]
         affected = graph.dependents(pk)
-        dishes = [dish for dish in Dish.objects.prefetch_related("lines") if any(row.kind == "preparation" and row.key in affected for row in components(dish.lines.all()))]
+        dishes = [dish for dish in Dish.objects.prefetch_related("lines") if any(row.kind == "preparation" and row.key in affected for row in components(dish.lines.all()))] if request.access.dishes_view else []
         return render(request, "tseh/preparation_detail.html", {"obj": obj, "result": result, "unit_price": graph.prep_prices[pk],
             "rows": list(zip(obj.lines.select_related("ingredient", "preparation"), result.rows)), "dishes": dishes,
             "dependents": Preparation.objects.filter(pk__in=affected).exclude(pk=pk), "active": "preparations",

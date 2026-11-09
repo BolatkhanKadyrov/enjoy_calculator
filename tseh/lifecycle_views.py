@@ -12,6 +12,7 @@ from tseh.listing import list_context, matches, sorted_rows
 from tseh.models import Dish, Ingredient, Preparation, Supplier
 from tseh.services import commands, lifecycle
 from tseh.views import read_snapshot
+from tseh.access import visible_dependencies
 
 TRANSITIONS = {
     "archive": ("Убрать в архив", "Блюдо исчезнет из активного ассортимента. Состав сохранится; блюдо можно вернуть в работу.", "active"),
@@ -37,6 +38,10 @@ class ArchiveListForm(forms.Form):
 @require_GET
 def archive(request):
     form = ArchiveListForm(request.GET)
+    permission_by_kind = {"dish": "dishes.view", "ingredient": "ingredients.view",
+                          "preparation": "preparations.view", "supplier": "suppliers.view"}
+    form.fields["kind"].choices = [(value, label) for value, label in form.fields["kind"].choices
+                                   if not value or request.access.can(permission_by_kind[value])]
     form.is_valid()
     params = {**form.cleaned_data, "status": form.cleaned_data.get("status") or "archived",
               "sort": form.cleaned_data.get("sort") or "name"}
@@ -44,6 +49,8 @@ def archive(request):
         rows = []
         for kind, model, label in [("dish", Dish, "Блюдо"), ("ingredient", Ingredient, "Сырьё / упаковка"),
                                    ("preparation", Preparation, "Заготовка"), ("supplier", Supplier, "Поставщик")]:
+            if not request.access.can(permission_by_kind[kind]):
+                continue
             if (params["status"] == "archived" and kind != "dish") or (params.get("kind") and params["kind"] != kind):
                 continue
             for obj in model.objects.filter(status=params["status"]):
@@ -56,8 +63,10 @@ def archive(request):
         rows = sorted_rows(rows, key, lambda obj: str(obj.pk), sort in {"-name", "newest"})
         context = list_context(request, form, params, rows)
         return render(request, "tseh/archive.html", {**context, "active": "archive", "state": params["status"],
-            "archived_count": Dish.objects.filter(status="archived").count(),
-            "trashed_count": sum(model.objects.filter(status="trashed").count() for model in (Dish, Ingredient, Preparation, Supplier))})
+            "archived_count": Dish.objects.filter(status="archived").count() if request.access.dishes_view else 0,
+            "trashed_count": sum(model.objects.filter(status="trashed").count() for model, permission in
+                ((Dish, "dishes.view"), (Ingredient, "ingredients.view"), (Preparation, "preparations.view"), (Supplier, "suppliers.view"))
+                if request.access.can(permission))})
 
 
 @login_required
@@ -74,7 +83,7 @@ def dish_transition(request, pk, action):
                 "restore": "Блюдо восстановлено в архив.", "activate": "Блюдо возвращено в ассортимент."}[action])
             return redirect("dish-detail", pk=pk)
         except ValidationError as exc:
-            for message in exc.messages:
+            for message in visible_dependencies(request.access, exc.messages):
                 form.add_error(None, message)
     with read_snapshot() as state:
         obj = get_object_or_404(Dish, pk=pk)
@@ -101,14 +110,14 @@ def catalog_transition(request, kind, pk, action):
                 "restore": "Запись восстановлена в справочник.", "purge": "Запись удалена окончательно. Журнал сохранён."}[action])
             return redirect(back if action == "restore" else "/archive/?status=trashed")
         except ValidationError as exc:
-            for message in exc.messages:
+            for message in visible_dependencies(request.access, exc.messages):
                 form.add_error(None, message)
     with read_snapshot() as state:
         obj = get_object_or_404(model, pk=pk)
         if request.method == "GET":
             form = CommandForm(initial={"token": commands.stamp(state)})
         dependencies = lifecycle.catalog_dependencies(kind, pk)
-        return render(request, "tseh/catalog_delete.html", {"form": form, "obj": obj, "dependencies": dependencies,
+        return render(request, "tseh/catalog_delete.html", {"form": form, "obj": obj, "dependencies": visible_dependencies(request.access, dependencies),
             "back": back, "active": "archive" if obj.status == "trashed" else back, "action": action, "kind": kind,
             "title": {"trash": "Переместить в корзину", "restore": "Восстановить в справочник", "purge": "Удалить окончательно"}[action],
             "can_apply": (obj.status == "active" if action == "trash" else obj.status == "trashed") and (action == "restore" or not dependencies)}, status=400 if form.errors else 200)

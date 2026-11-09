@@ -1,0 +1,17 @@
+{% extends 'tseh/base.html' %}{% load static %}
+{% block title %}Удалить сотрудника · Цех{% endblock %}
+{% block content %}
+<div class="employees-page employee-confirm-page">
+  <a class="back" href="{% url 'employee-list' %}">← Сотрудники</a>
+  <header class="page-heading"><div><h1>Удалить сотрудника?</h1><p>{{ employee.first_name|default:employee.username }} · логин {{ employee.username }}</p></div></header>
+  <section class="panel padded">
+    <h2>Вход будет отключён</h2>
+    <p>Все действующие сеансы сотрудника завершатся. Он больше не сможет войти в сервис. Его рецептуры, другие сохранённые данные и история действий останутся.</p>
+    <p class="fine">Учётная запись останется в списке отключённых сотрудников. Повторно использовать этот логин нельзя.</p>
+    <form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
+      <div class="employee-confirm-check"><label for="{{ form.confirm.id_for_label }}">{{ form.confirm }}<span>{{ form.confirm.label }}</span></label>{{ form.confirm.errors }}</div>
+      <div class="form-actions"><button class="button danger" type="submit"><span class="button-label">Удалить сотрудника и отключить вход</span></button><a class="button link" href="{% url 'employee-list' %}"><span class="button-label">Отмена</span></a></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

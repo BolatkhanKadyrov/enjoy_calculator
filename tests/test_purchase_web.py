@@ -282,6 +282,8 @@ def test_cross_user_route_discount_and_stale_confirm_rejected(authenticated, sta
     response = preview(authenticated, "delivery-create", amount="3000", note="")
     body = {**controls(response), "intent": "confirm"}
     other = get_user_model().objects.create_user(username="purchase-other", password="test-password")
+    from tseh.models import AccountAccess
+    AccountAccess.objects.create(user=other, is_owner=True)
     authenticated.force_login(other)
     assert authenticated.post(reverse("delivery-create"), body).status_code == 400
     assert facts() == before

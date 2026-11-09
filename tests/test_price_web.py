@@ -226,6 +226,8 @@ def test_preview_tampering_and_other_user_are_rejected(authenticated, state):
     before = state_facts()
     assert authenticated.post(url("create", key), {**body, "preview_token": body["preview_token"] + "x"}).status_code == 400
     other = get_user_model().objects.create_user(username="other-price-user", password="test-password")
+    from tseh.models import AccountAccess
+    AccountAccess.objects.create(user=other, is_owner=True)
     authenticated.force_login(other)
     assert authenticated.post(url("create", key), body).status_code == 400
     assert state_facts() == before
