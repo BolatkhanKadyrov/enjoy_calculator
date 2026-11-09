@@ -1,5 +1,5 @@
 """Explicit account permissions shared by server checks and presentation."""
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.urls import reverse
 
 ACTION_LABELS = {"view": "Просматривать", "add": "Добавлять", "change": "Изменять", "delete": "Удалять"}
@@ -50,6 +50,9 @@ class Access:
     def __init__(self, user, profile=None):
         self.user = user
         self.is_owner = False
+        self.is_admin = False
+        self.role = None
+        self.role_label = "Без доступа"
         self.permissions = frozenset()
         if not user.is_authenticated or not user.is_active:
             return
@@ -57,13 +60,40 @@ class Access:
             from tseh.models import AccountAccess
             profile = AccountAccess.objects.filter(user_id=user.pk).first()
         if profile is not None:
+            if profile.is_owner and profile.is_admin:
+                return
             self.is_owner = profile.is_owner
-            # Grants remain explicit. Corrupt data never expands privileges.
+            self.is_admin = profile.is_admin
+            self.role = profile.role
+            self.role_label = profile.role_label
+            # Employees use explicit grants; administrators receive working rights from their role.
             values = profile.permissions if isinstance(profile.permissions, list) else []
-            self.permissions = frozenset(v for v in values if isinstance(v, str) and v in PERMISSIONS)
+            self.permissions = (frozenset(PERMISSIONS) if self.is_admin else
+                                frozenset(v for v in values if isinstance(v, str) and v in PERMISSIONS))
 
     def can(self, key):
         return key in PERMISSIONS and (self.is_owner or key in self.permissions)
+
+    @property
+    def can_manage_staff(self):
+        return self.is_owner or self.is_admin
+
+    def can_manage_account(self, account):
+        try:
+            profile = account.account_access
+        except ObjectDoesNotExist:
+            return False
+        if self.is_owner:
+            return not profile.is_owner
+        return self.is_admin and not profile.is_owner and not profile.is_admin
+
+    @property
+    def can_manage_thresholds(self):
+        return self.is_owner or self.is_admin
+
+    def can_reset_sessions_for(self, account):
+        return account.is_active and (self.can_manage_account(account)
+            or (self.is_owner and account.pk == self.user.pk))
 
     def __getattr__(self, name):
         if '_' in name:
@@ -89,6 +119,8 @@ class Access:
                            ('suppliers.view', 'suppliers'), ('journal.view', 'journal')):
             if self.can(key):
                 return reverse(route)
+        if self.can_manage_staff:
+            return reverse('employee-list')
         return reverse('access-unavailable')
 
 
@@ -100,8 +132,8 @@ def access_context(request):
     return {'access': getattr(request, 'access', None) or Access(request.user)}
 
 
-OWNER_ROUTES = {'exchange', 'export-json', 'export-xlsx', 'restore-review', 'restore-download', 'restore-refresh',
-                'thresholds', 'employee-list', 'employee-create', 'employee-edit', 'employee-disable'}
+OWNER_ROUTES = {'exchange', 'export-json', 'export-xlsx', 'restore-review', 'restore-download', 'restore-refresh'}
+STAFF_ROUTES = {'employee-list', 'employee-create', 'employee-edit', 'employee-disable', 'employee-reset-sessions'}
 ROUTE_PERMISSIONS = {
     'dashboard': 'dishes.view', 'dish-detail': 'dishes.view', 'dish-create': 'dishes.add', 'dish-edit': 'dishes.change',
     'preparations': 'preparations.view', 'preparation-detail': 'preparations.view',
@@ -124,6 +156,10 @@ def authorize(request, route, kwargs):
         return
     if route in OWNER_ROUTES:
         allowed = access.is_owner
+    elif route in STAFF_ROUTES:
+        allowed = access.can_manage_staff
+    elif route == 'thresholds':
+        allowed = access.can_manage_thresholds
     elif route == 'archive':
         allowed = access.archive_view
     elif route == 'dish-transition':

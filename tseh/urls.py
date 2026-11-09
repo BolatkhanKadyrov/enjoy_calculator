@@ -9,6 +9,7 @@ urlpatterns = [
     path("employees/new/", employee_views.employee_create, name="employee-create"),
     path("employees/<int:pk>/edit/", employee_views.employee_edit, name="employee-edit"),
     path("employees/<int:pk>/disable/", employee_views.employee_disable, name="employee-disable"),
+    path("employees/<int:pk>/sessions/reset/", employee_views.employee_reset_sessions, name="employee-reset-sessions"),
     path("data/", transfer_views.exchange, name="exchange"),
     path("data/export.json", transfer_views.export_json, name="export-json"),
     path("data/export.xlsx", transfer_views.export_xlsx, name="export-xlsx"),

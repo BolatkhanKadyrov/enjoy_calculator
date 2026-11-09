@@ -8,11 +8,11 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import Client
 from django.urls import reverse
 
-from tseh.access import normalize_permissions
+from tseh.access import Access, PERMISSIONS, normalize_permissions
 from tseh.employee_forms import EmployeeForm
 from tseh.models.accounts import AccountAccess, AccountEvent
 from tseh.models import AuditEntry, DomainState
-from tseh.services.employees import employee_token, save_employee, disable_employee
+from tseh.services.employees import employee_token, save_employee, disable_employee, reset_employee_sessions
 
 pytestmark = pytest.mark.django_db
 PASSWORD = "fresh-staff-secret-74!"
@@ -306,3 +306,235 @@ def test_form_groups_keep_selection_and_normalize_permissions(owner):
     assert form.cleaned_data["permissions"] == normalize_permissions(["dishes.add"])
     checked = {option["key"] for group in form.permission_groups for option in group["options"] if option["checked"]}
     assert checked == {"dishes.add"}
+
+
+def create_admin(owner, username="admin-one", permissions=("dishes.view",)):
+    return save_employee(owner, token=employee_token(owner), username=username,
+                         role="admin", permissions=permissions, password1=PASSWORD, password2=PASSWORD)
+
+
+def test_owner_assigns_admin_without_django_privileges_and_omitted_role_is_preserved(owner):
+    admin = create_admin(owner)
+    assert admin.account_access.role == "admin"
+    assert not admin.account_access.is_owner and not admin.is_staff and not admin.is_superuser
+    assert AccountEvent.objects.get().after["role"] == "admin"
+    changed = save_employee(owner, **edit_payload(owner, admin, display_name="Управляющий"))
+    assert changed.account_access.role == "admin"
+    assert changed.account_access.permissions == []
+    assert Access(changed).permissions == frozenset(PERMISSIONS)
+
+
+def test_role_change_revokes_sessions_without_changing_password_or_active_state(owner):
+    employee = create_staff(owner)
+    original_hash = employee.password
+    browser = Client()
+    browser.force_login(employee)
+    key = browser.session.session_key
+    promoted = save_employee(owner, **edit_payload(owner, employee), role="admin")
+    assert promoted.account_access.is_admin
+    assert promoted.password == original_hash and promoted.is_active
+    assert not Session.objects.filter(session_key=key).exists()
+    event = AccountEvent.objects.latest("pk")
+    assert event.before["role"] == "employee" and event.after["role"] == "admin"
+    demoted = save_employee(owner, **edit_payload(owner, promoted), role="employee")
+    assert demoted.account_access.role == "employee"
+    assert demoted.account_access.permissions == []
+    assert not Access(demoted).can("dishes.view")
+
+
+@pytest.mark.parametrize("role", ["owner", "superuser", "", True])
+def test_service_rejects_invalid_roles_without_creating_account(owner, role):
+    with pytest.raises(ValidationError):
+        save_employee(owner, token=employee_token(owner), username="invalid-role", role=role,
+                      password1=PASSWORD, password2=PASSWORD)
+    assert not get_user_model().objects.filter(username="invalid-role").exists()
+
+
+def test_admin_creates_and_updates_ordinary_staff_within_own_permissions(owner):
+    admin = create_admin(owner, permissions=["dishes.add"])
+    employee = create_staff(admin, permissions=["dishes.view"])
+    assert employee.account_access.role == "employee"
+    updated = save_employee(admin, **edit_payload(admin, employee, permissions=["dishes.add"]))
+    assert updated.account_access.permissions == normalize_permissions(["dishes.add"])
+    disabled = disable_employee(admin, employee_id=updated.pk,
+                                token=employee_token(admin, updated, action="disable"))
+    assert not disabled.is_active
+    assert AccountEvent.objects.latest("pk").actor_name == "admin-one"
+
+
+@pytest.mark.parametrize("role", ["employee", "admin", "owner"])
+def test_admin_cannot_submit_role_even_when_it_would_remain_employee(owner, role):
+    admin = create_admin(owner)
+    with pytest.raises(PermissionDenied):
+        save_employee(admin, token=employee_token(admin), username="forged-role", role=role,
+                      password1=PASSWORD, password2=PASSWORD)
+    assert not get_user_model().objects.filter(username="forged-role").exists()
+
+
+@pytest.mark.parametrize("target_kind", ["owner", "other_admin", "self"])
+def test_admin_cannot_change_disable_or_reset_privileged_accounts(owner, target_kind):
+    admin = create_admin(owner)
+    target = {"owner": owner, "self": admin}.get(target_kind)
+    if target is None:
+        target = create_admin(owner, username="admin-two")
+    with pytest.raises(PermissionDenied):
+        save_employee(admin, **edit_payload(admin, target, display_name="Захват"))
+    with pytest.raises(PermissionDenied):
+        disable_employee(admin, employee_id=target.pk, token=employee_token(admin, target, action="disable"))
+    with pytest.raises(PermissionDenied):
+        reset_employee_sessions(admin, employee_id=target.pk,
+                                token=employee_token(admin, target, action="reset_sessions"))
+    target.refresh_from_db()
+    assert target.is_active and target.first_name != "Захват"
+
+
+def test_admin_role_can_manage_all_ordinary_work_permissions_without_persisting_grants(owner):
+    admin = create_admin(owner, permissions=["dishes.view"])
+    broad = create_staff(owner, permissions=["dishes.change"])
+    assert admin.account_access.permissions == []
+    assert Access(admin).permissions == frozenset(PERMISSIONS)
+    created = create_staff(admin, username="power-account", permissions=["dishes.change"])
+    assert created.account_access.permissions == normalize_permissions(["dishes.change"])
+    updated = save_employee(admin, **edit_payload(admin, broad, permissions=["dishes.view"],
+                                                  password1=NEW_PASSWORD, password2=NEW_PASSWORD))
+    assert updated.check_password(NEW_PASSWORD)
+    assert reset_employee_sessions(admin, employee_id=updated.pk,
+                                   token=employee_token(admin, updated, action="reset_sessions")) == 0
+
+
+def test_target_promoted_after_admin_opened_form_is_protected(owner):
+    admin = create_admin(owner)
+    employee = create_staff(owner)
+    payload = edit_payload(admin, employee, password1=NEW_PASSWORD, password2=NEW_PASSWORD)
+    save_employee(owner, **edit_payload(owner, employee), role="admin")
+    with pytest.raises(PermissionDenied):
+        save_employee(admin, **payload)
+    employee.refresh_from_db()
+    assert employee.account_access.is_admin and employee.check_password(PASSWORD)
+
+
+def test_actor_version_invalidates_old_forms_even_when_manager_still_has_permission(owner):
+    admin = create_admin(owner)
+    employee = create_staff(owner)
+    old_payload = edit_payload(admin, employee, display_name="Старая форма")
+    old_create = employee_token(admin)
+    save_employee(owner, **edit_payload(owner, admin, permissions=["dishes.add"]))
+    with pytest.raises(ValidationError, match="устарела"):
+        save_employee(admin, **old_payload)
+    with pytest.raises(ValidationError, match="устарела"):
+        save_employee(admin, token=old_create, username="old-form", permissions=["dishes.view"],
+                      password1=PASSWORD, password2=PASSWORD)
+    assert not get_user_model().objects.filter(username="old-form").exists()
+
+
+def test_reset_revokes_only_target_sessions_and_keeps_credentials_rights_and_history(owner):
+    admin = create_admin(owner)
+    employee = create_staff(owner)
+    other = create_staff(owner, username="other-cook")
+    original_hash = employee.password
+    browsers = [Client(), Client(), Client()]
+    for browser, account in zip(browsers, [employee, employee, other]):
+        browser.force_login(account)
+    keys = [browser.session.session_key for browser in browsers]
+    token = employee_token(admin, employee, action="reset_sessions")
+    assert reset_employee_sessions(admin, employee_id=employee.pk, token=token) == 2
+    employee.refresh_from_db()
+    assert employee.is_active and employee.password == original_hash
+    assert employee.account_access.permissions == ["dishes.view"]
+    assert employee.account_access.version == 2
+    assert not Session.objects.filter(session_key__in=keys[:2]).exists()
+    assert Session.objects.filter(session_key=keys[2]).exists()
+    event = AccountEvent.objects.latest("pk")
+    assert event.action == "reset_sessions" and event.after["revoked_sessions"] == 2
+    assert event.after["role"] == "employee"
+    assert PASSWORD not in json.dumps(event.after) and original_hash not in json.dumps(event.after)
+    assert Client().login(username=employee.username, password=PASSWORD)
+    with pytest.raises(ValidationError, match="устарела"):
+        reset_employee_sessions(admin, employee_id=employee.pk, token=token)
+
+
+def test_owner_can_end_own_sessions_and_old_manager_tokens_are_invalid(owner):
+    browser = Client()
+    browser.force_login(owner)
+    key = browser.session.session_key
+    old_create = employee_token(owner)
+    token = employee_token(owner, owner, action="reset_sessions")
+    original_hash = owner.password
+    assert reset_employee_sessions(owner, employee_id=owner.pk, token=token) == 1
+    assert not Session.objects.filter(session_key=key).exists()
+    owner.refresh_from_db()
+    assert owner.is_active and owner.password == original_hash and owner.account_access.is_owner
+    with pytest.raises(ValidationError, match="устарела"):
+        save_employee(owner, token=old_create, username="obsolete-form",
+                      password1=PASSWORD, password2=PASSWORD)
+
+
+def test_reset_action_token_and_disabled_state_checked_before_audit(owner):
+    employee = create_staff(owner)
+    with pytest.raises(ValidationError):
+        reset_employee_sessions(owner, employee_id=employee.pk, token=employee_token(owner, employee))
+    disabled = disable_employee(owner, employee_id=employee.pk,
+                                token=employee_token(owner, employee, action="disable"))
+    with pytest.raises(ValidationError, match="отключён"):
+        reset_employee_sessions(owner, employee_id=disabled.pk,
+                                token=employee_token(owner, disabled, action="reset_sessions"))
+    assert not AccountEvent.objects.filter(action="reset_sessions").exists()
+
+
+def test_reset_is_atomic_with_audit_failure(owner, monkeypatch):
+    employee = create_staff(owner)
+    browser = Client()
+    browser.force_login(employee)
+    key = browser.session.session_key
+
+    def audit_failure(**kwargs):
+        raise RuntimeError("audit failed")
+
+    monkeypatch.setattr(AccountEvent.objects, "create", audit_failure)
+    with pytest.raises(RuntimeError, match="audit failed"):
+        reset_employee_sessions(owner, employee_id=employee.pk,
+                                token=employee_token(owner, employee, action="reset_sessions"))
+    employee.refresh_from_db()
+    assert employee.account_access.version == 1
+    assert Session.objects.filter(session_key=key).exists()
+    assert not AccountEvent.objects.filter(action="reset_sessions").exists()
+
+
+def test_role_form_owner_choices_and_admin_tampering_rejection(owner):
+    admin = create_admin(owner)
+    owner_form = EmployeeForm(actor=owner, employee=admin)
+    assert list(owner_form.fields["role"].choices) == [("employee", "Сотрудник"), ("admin", "Администратор")]
+    assert owner_form["role"].value() == "admin"
+    admin_form = EmployeeForm(actor=admin)
+    assert "role" not in admin_form.fields
+    assert dict(admin_form.fields["permissions"].choices) == PERMISSIONS
+    assert len(admin_form.permission_groups) == 7
+    payload = {"token": employee_token(admin), "username": "forged-role", "role": "employee",
+               "password1": PASSWORD, "password2": PASSWORD, "permissions": ["dishes.view"]}
+    forged = EmployeeForm(payload, actor=admin)
+    assert not forged.is_valid()
+    assert "Только владелец" in str(forged.non_field_errors())
+    payload.pop("role")
+    payload["permissions"] = ["employees.manage"]
+    broader = EmployeeForm(payload, actor=admin)
+    assert not broader.is_valid() and "permissions" in broader.errors
+
+
+def test_demotion_uses_only_explicit_permissions_selected_for_employee(owner):
+    admin = create_admin(owner, permissions=list(PERMISSIONS))
+    assert admin.account_access.permissions == []
+    demoted = save_employee(owner, **edit_payload(owner, admin, permissions=["dishes.add"]), role="employee")
+    assert demoted.account_access.permissions == normalize_permissions(["dishes.add"])
+    assert not Access(demoted).can("dishes.delete")
+
+
+def test_owner_form_reports_effective_role_without_preselecting_implicit_admin_grants(owner):
+    admin = create_admin(owner)
+    form = EmployeeForm(actor=owner, employee=admin)
+    assert form.permissions_locked and form.selected_role == "admin"
+    assert not any(option["checked"] for group in form.permission_groups for option in group["options"])
+    payload = {"token": employee_token(owner, admin), "username": admin.username, "role": "employee",
+               "password1": "", "password2": "", "permissions": ["dishes.view"]}
+    form = EmployeeForm(payload, actor=owner, employee=admin)
+    assert not form.permissions_locked and form.selected_role == "employee"
+    assert form.is_valid(), form.errors

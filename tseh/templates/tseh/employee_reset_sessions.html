@@ -1,0 +1,19 @@
+{% extends 'tseh/base.html' %}
+{% block title %}Завершить сеансы · Цех{% endblock %}
+{% block content %}
+<div class="employees-page employee-confirm-page">
+  <a class="back" href="{% url 'employee-list' %}">← Сотрудники</a>
+  <header class="page-heading"><div><h1>{% if is_self %}Завершить мои сеансы?{% else %}Завершить сеансы сотрудника?{% endif %}</h1><p>{{ employee.first_name|default:employee.username }} · логин {{ employee.username }} · {{ employee.account_access.role_label }}</p></div></header>
+  <section class="panel padded">
+    <h2>Потребуется войти заново</h2>
+    {% if is_self %}<p>Вы выйдете из аккаунта на всех устройствах, включая этот браузер. Для продолжения работы снова введите свой логин и пароль.</p>
+    {% else %}<p>Все действующие сеансы этого аккаунта завершатся на всех устройствах. Сотрудник сможет войти снова со своим логином и паролем.</p>{% endif %}
+    <p>Пароль, роль и права доступа сохранятся. Аккаунт останется активным.</p>
+    <p class="fine">{% if is_self %}Сохраните текущую работу перед подтверждением.{% else %}Завершение сеансов не сохраняет незавершённые формы сотрудника.{% endif %}</p>
+    <form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
+      <div class="employee-confirm-check"><label for="{{ form.confirm.id_for_label }}">{{ form.confirm }}<span>{{ form.confirm.label }}</span></label>{{ form.confirm.errors }}</div>
+      <div class="form-actions"><button class="button danger" type="submit"><span class="button-label">{% if is_self %}Завершить мои сеансы{% else %}Завершить все сеансы{% endif %}</span></button><a class="button link" href="{% url 'employee-list' %}"><span class="button-label">Отмена</span></a></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

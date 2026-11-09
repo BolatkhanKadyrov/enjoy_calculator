@@ -33,7 +33,7 @@ def test_create_first_owner_as_ordinary_django_user_without_secret_output():
     assert user.account_access.is_owner and user.account_access.permissions == []
     assert prompts == 2
     assert PASSWORD not in output and user.password not in output
-    assert "Администратор tseh создан" in output
+    assert "Владелец tseh создан" in output
     assert not AccountEvent.objects.exists()
 
 

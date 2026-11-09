@@ -16,15 +16,15 @@ BOOTSTRAP_LOCK = 0x545345484F574E52  # TSEHOWNR, transaction-scoped PostgreSQL l
 
 
 class Command(BaseCommand):
-    help = "Создать первого администратора Цеха с интерактивным вводом пароля. Существующие аккаунты не изменяются."
+    help = "Создать первого владельца Цеха с интерактивным вводом пароля. Существующие аккаунты не изменяются."
     requires_migrations_checks = True
 
     def add_arguments(self, parser):
-        parser.add_argument("--username", default="tseh", help="Логин первого администратора (по умолчанию tseh).")
+        parser.add_argument("--username", default="tseh", help="Логин владельца (по умолчанию tseh).")
 
     def _check_available(self, username):
         if AccountAccess.objects.filter(is_owner=True).exists():
-            raise CommandError("Администратор уже существует. Эта команда не меняет аккаунты и не создаёт второго администратора.")
+            raise CommandError("Владелец уже существует. Эта команда не меняет аккаунты и не создаёт второго владельца.")
         if get_user_model().objects.filter(username__iexact=username).exists():
             raise CommandError("Логин уже занят. Существующая учётная запись не будет изменена или повышена в правах.")
 
@@ -38,12 +38,12 @@ class Command(BaseCommand):
             # Refuse getpass's echoing fallback when no safe terminal exists.
             with warnings.catch_warnings():
                 warnings.simplefilter("error", getpass.GetPassWarning)
-                password = getpass.getpass("Пароль администратора: ")
+                password = getpass.getpass("Пароль владельца: ")
                 confirmation = getpass.getpass("Повторите пароль: ")
         except (EOFError, KeyboardInterrupt, getpass.GetPassWarning):
             raise CommandError("Ввод отменён. Запустите команду в терминале с безопасным вводом пароля.") from None
         if not password or password != confirmation:
-            raise CommandError("Пароли пусты или не совпадают. Администратор не создан.")
+            raise CommandError("Пароли пусты или не совпадают. Владелец не создан.")
         user = get_user_model()(username=username, is_active=True, is_staff=False, is_superuser=False)
         try:
             validate_password(password, user)
@@ -63,4 +63,4 @@ class Command(BaseCommand):
             raise CommandError(" ".join(exc.messages)) from None
         except IntegrityError:
             raise CommandError("Логин был занят другим процессом. Существующие аккаунты не изменены.") from None
-        self.stdout.write(self.style.SUCCESS(f"Администратор {username} создан."))
+        self.stdout.write(self.style.SUCCESS(f"Владелец {username} создан."))

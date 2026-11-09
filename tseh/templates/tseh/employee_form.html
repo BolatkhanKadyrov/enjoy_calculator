@@ -1,9 +1,10 @@
 {% extends 'tseh/base.html' %}{% load static %}
 {% block title %}{{ title }} · Цех{% endblock %}
+{% block extra_head %}<script src="{% static 'tseh/employees.js' %}" defer></script>{% endblock %}
 {% block content %}
 <div class="employees-page">
   <a class="back" href="{% url 'employee-list' %}">← Сотрудники</a>
-  <header class="page-heading"><div><h1>{{ title }}</h1><p>{% if employee %}{{ employee.username }}. Изменение прав, логина или пароля завершит действующие входы.{% else %}Задайте данные для входа и выберите, что сотрудник сможет делать.{% endif %}</p></div></header>
+  <header class="page-heading"><div><h1>{{ title }}</h1><p>{% if employee %}{{ employee.username }}. Изменение роли, прав, логина или пароля завершит действующие входы.{% else %}Задайте данные для входа и выберите, что сотрудник сможет делать.{% endif %}</p></div></header>
   <form method="post" autocomplete="off" class="employee-form">
     {% csrf_token %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
     <section class="panel padded" aria-labelledby="employee-account-heading">
@@ -12,6 +13,7 @@
         {% include 'tseh/_field.html' with field=form.display_name %}
         {% include 'tseh/_field.html' with field=form.username %}
       </div>
+      {% if access.is_owner %}<div class="employee-role-field">{% include 'tseh/_field.html' with field=form.role %}</div>{% endif %}
       <h3 class="employee-password-heading">{% if employee %}Новый пароль{% else %}Пароль для входа{% endif %}</h3>
       {% if not employee %}<p class="fine">Передайте логин и пароль сотруднику лично. Сохранённый пароль нельзя посмотреть.</p>{% endif %}
       <div class="form-grid">
@@ -21,9 +23,11 @@
     </section>
     <section class="panel padded" aria-labelledby="employee-rights-heading">
       <h2 id="employee-rights-heading">Права доступа</h2>
-      <p class="employee-permission-intro" id="employee-rights-help">Отметьте только нужные действия. Для них автоматически откроется просмотр связанных данных: например, для составления рецептуры — справочники компонентов.</p>
       {{ form.permissions.errors }}
-      <div class="employee-permissions" aria-describedby="employee-rights-help">
+      {% if access.is_owner %}<p id="employee-admin-rights" data-admin-rights class="employee-admin-rights" role="status"{% if not permissions_locked %} hidden{% endif %}>Все рабочие права автоматически. Назначение администраторов, полные копии и восстановление доступны владельцу.</p>{% endif %}
+      <div id="employee-permission-selection" data-employee-rights>
+      {% if permission_groups %}<p class="employee-permission-intro" id="employee-rights-help">Отметьте только нужные действия. Для них автоматически откроется просмотр связанных данных: например, для составления рецептуры — справочники компонентов.</p>{% endif %}
+      <div class="employee-permissions"{% if permission_groups %} aria-describedby="employee-rights-help"{% endif %}>
         {% for group in permission_groups %}<fieldset class="employee-permission-group">
           <legend>{{ group.label }}</legend>
           {% if group.description %}<p class="fine">{{ group.description }}</p>{% endif %}
@@ -32,7 +36,8 @@
           </div>
         </fieldset>{% endfor %}
       </div>
-      <p class="fine">Управление сотрудниками, пороги зон, полные копии и восстановление доступны только администратору.</p>
+      <p class="fine">Назначение администраторов, полные копии и восстановление доступны только владельцу. Администратор управляет аккаунтами с ролью «Сотрудник».</p>
+      </div>
     </section>
     <div class="form-actions"><button class="button primary" type="submit"><span class="button-label">{% if employee %}Сохранить доступ{% else %}Добавить сотрудника{% endif %}</span></button><a class="button link" href="{% url 'employee-list' %}"><span class="button-label">Отмена</span></a></div>
   </form>
