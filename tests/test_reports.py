@@ -149,7 +149,7 @@ def test_tiny_intermediate_price_is_not_rounded_before_final_cost_and_inherited_
 def test_empty_report_and_invalid_discount(state):
     before = facts()
     book = read(build_xlsx())
-    assert len(book.sheetnames) == 12 and "Sheet" not in book.sheetnames
+    assert len(book.sheetnames) == 15 and "Sheet" not in book.sheetnames
     assert book["Блюда"]["A6"].value == "Нет записей"
     assert facts() == before
     for bad in ("NaN", "Infinity", -1, 100, True, 1.5):

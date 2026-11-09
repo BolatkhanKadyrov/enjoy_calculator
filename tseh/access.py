@@ -105,6 +105,10 @@ class Access:
         return any(self.can(f'{kind}.view') for kind in ('dishes', 'preparations', 'ingredients', 'suppliers'))
 
     @property
+    def drafts_view(self):
+        return any(self.can(f'{kind}.view') for kind in ('dishes', 'preparations', 'ingredients'))
+
+    @property
     def scenarios_view(self):
         return all(self.can(key) for key in ('prices.view', 'ingredients.view', 'dishes.view', 'preparations.view', 'suppliers.view'))
 
@@ -129,7 +133,15 @@ def is_owner(user):
 
 
 def access_context(request):
-    return {'access': getattr(request, 'access', None) or Access(request.user)}
+    access = getattr(request, 'access', None) or Access(request.user)
+    context = {'access': access}
+    route = getattr(getattr(request, 'resolver_match', None), 'url_name', None)
+    kind = {'dashboard': 'dish', 'preparations': 'preparation', 'ingredients': 'ingredient'}.get(route)
+    if kind and access.drafts_view:
+        from tseh.models import CatalogDraft
+        context.update(catalog_draft_kind=kind,
+            catalog_draft_count=CatalogDraft.objects.filter(kind=kind, published_at__isnull=True).count())
+    return context
 
 
 OWNER_ROUTES = {'exchange', 'export-json', 'export-xlsx', 'restore-review', 'restore-download', 'restore-refresh'}
@@ -162,6 +174,12 @@ def authorize(request, route, kwargs):
         allowed = access.can_manage_thresholds
     elif route == 'archive':
         allowed = access.archive_view
+    elif route in {'draft-list', 'draft-detail', 'draft-edit', 'draft-preview', 'draft-delete'}:
+        # The view checks the draft's actual kind and the action again, without revealing hidden records.
+        allowed = access.drafts_view
+    elif route == 'draft-create':
+        kind = {'dish': 'dishes', 'preparation': 'preparations', 'ingredient': 'ingredients'}.get(kwargs.get('kind'))
+        allowed = kind is not None and access.can(f'{kind}.add')
     elif route == 'dish-transition':
         action = kwargs.get('action')
         allowed = action in {'archive', 'trash', 'restore', 'activate'} and access.can(

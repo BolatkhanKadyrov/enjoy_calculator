@@ -1,5 +1,5 @@
 {% extends 'tseh/base.html' %}{% load display %}{% block title %}Блюда · Цех{% endblock %}{% block content %}
-<header class="page-heading"><div><h1>Блюда</h1><p>Себестоимость одной порции по действующим ценам.</p></div>{% if dish_count or list_active %}{% if access.dishes_add %}<a class="button primary" href="{% url 'dish-create' %}">{% include 'tseh/_icon_plus.html' %}<span class="button-label">Создать блюдо</span></a>{% endif %}{% endif %}</header>
+<header class="page-heading"><div><h1>Блюда</h1><p>Себестоимость одной порции по действующим ценам.</p></div>{% if dish_count or list_active %}{% if access.dishes_add %}<a class="button primary" href="{% url 'dish-create' %}">{% include 'tseh/_icon_plus.html' %}<span class="button-label">Создать блюдо</span></a>{% endif %}{% endif %}</header>{% include 'tseh/_draft_catalog_link.html' %}
 <div class="stats"><div><span>Блюд в ассортименте</span><strong>{{ dish_count }}</strong></div>{% if access.ingredients_view %}<div><span>Ингредиентов</span><strong>{{ ingredient_count }}</strong></div>{% endif %}{% if access.suppliers_view %}<div><span>Поставщиков</span><strong>{{ supplier_count }}</strong></div>{% endif %}</div>
 {% include 'tseh/_discount.html' %}
 <section class="panel"><div class="panel-heading"><h2>Калькуляции</h2></div>

@@ -200,7 +200,7 @@ def test_xlsx_http_is_download_readonly_and_uses_analysis_discount(authenticated
     response = authenticated.get(reverse("export-xlsx"))
     assert response.status_code == 200 and response.content[:2] == b"PK" and facts() == before
     book = load_workbook(BytesIO(response.content), data_only=True)
-    assert len(book.sheetnames) == 12 and "Блюда" in book.sheetnames
+    assert len(book.sheetnames) == 15 and "Блюда" in book.sheetnames
     sheet = book["Блюда"]
     headers = {cell.value: cell.column for cell in sheet[5]}
     assert sheet.cell(6, headers["Цена со скидкой, ₸"]).value == 900

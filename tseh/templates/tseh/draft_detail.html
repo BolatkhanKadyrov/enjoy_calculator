@@ -1,0 +1,10 @@
+{% extends 'tseh/draft_base.html' %}
+{% block title %}{{ draft.name }} · Черновик · Цех{% endblock %}
+{% block content %}<div class="draft-page"><a class="back" href="{% url 'draft-list' %}">← Черновики</a>
+<header class="page-heading"><div><h1>{{ draft.name }}</h1><p>{{ draft.get_kind_display }} · <span class="draft-state">{% if draft.is_published %}Опубликован{% else %}Черновик{% endif %}</span></p></div>{% if can_edit %}<a class="button primary" href="{% url 'draft-edit' draft.pk %}"><span class="button-label">Редактировать черновик</span></a>{% endif %}</header>
+{% if draft.is_published %}<div class="notice success"><p>Опубликован {{ draft.published_at|date:'d.m.Y H:i' }}. Сохранённые ниже данные показывают исходник публикации.</p>{% if published_target.url %}<a href="{{ published_target.url }}">Открыть карточку: {{ published_target.label }}</a> · {{ published_target.status }}{% else %}<p>{{ published_target.label }}</p>{% endif %}</div>{% else %}<p class="draft-save-state">Сохранён на сервере {{ draft.updated_at|date:'d.m.Y H:i' }}. Пока не участвует в себестоимости и уникальности блюд.</p>{% endif %}
+{% if draft.notes %}<section class="panel padded"><h2>Что нужно уточнить</h2><p class="draft-preserve">{{ draft.notes }}</p></section>{% endif %}
+{% include 'tseh/_draft_details.html' %}
+{% if can_publish %}<div class="draft-next-step"><div><h2>Готово к проверке?</h2><p>Проверим сохранённые значения и связанные компоненты. Публикация потребует отдельного подтверждения.</p></div><a class="button primary" href="{% url 'draft-preview' draft.pk %}"><span class="button-label">Проверить перед публикацией</span></a></div>{% endif %}
+{% include 'tseh/_draft_source.html' %}
+{% if can_delete %}<div class="form-actions"><a class="button link draft-delete-link" href="{% url 'draft-delete' draft.pk %}"><span class="button-label">Удалить черновик</span></a></div>{% endif %}</div>{% endblock %}

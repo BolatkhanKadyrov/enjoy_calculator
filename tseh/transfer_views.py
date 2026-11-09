@@ -15,7 +15,7 @@ from tseh.views import analysis_discount, read_snapshot
 LABELS = {"settings": "Настройки", "suppliers": "Поставщики", "ingredients": "Сырьё и упаковка", "prices": "Цены",
     "price_applications": "Применения цен", "purchases": "Закупки", "purchase_lines": "Строки закупок",
     "unallocated_delivery": "Нераспределённая доставка", "preparations": "Заготовки", "preparation_lines": "Строки заготовок",
-    "dishes": "Блюда", "dish_lines": "Строки рецептур", "journal": "Записи журнала"}
+    "dishes": "Блюда", "dish_lines": "Строки рецептур", "catalog_drafts": "Черновики", "journal": "Записи журнала"}
 
 
 class UploadForm(forms.Form):

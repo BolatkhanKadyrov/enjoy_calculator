@@ -19,7 +19,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from tseh.calculation.pricing import assess, effective_thresholds
-from tseh.models import (Dish, Ingredient, Preparation, Price, PriceApplication,
+from tseh.models import (CatalogDraft, Dish, Ingredient, Preparation, Price, PriceApplication,
                          Purchase, Supplier, UnallocatedDelivery)
 from .price_queries import price_history
 from .queries import catalog, components, general_settings
@@ -183,6 +183,7 @@ def build_xlsx(discount=0):
         ("Общий оранжевый порог, %", settings.orange),
         ("Сохранность", "Скачивайте JSON регулярно вручную. В отчёте нет учётных данных, ключей и сессий."),
         ("Текст", "Текстовые значения записаны как текст, без формул. Недопустимые для XML управляющие символы заменены знаком �."),
+        ("Черновики", "Незавершённые карточки вынесены на отдельные листы и не участвуют в стоимости. Неизвестные цены остаются пустыми, диапазоны и исходный текст сохраняются как текст."),
     ]
     report.sheet("Об отчёте", [Column("Параметр", 32), Column("Значение", 110)], info_rows)
     dish_rows, recipe_rows = [], []
@@ -272,4 +273,35 @@ def build_xlsx(discount=0):
     report.sheet("Нераспределённая доставка", [money_col("Сумма, ₸"), Column("Создано", 23),
         Column("Заметка", 96), ident], ((obj.amount, obj.created_at, obj.note, str(obj.pk))
         for obj in UnallocatedDelivery.objects.order_by("created_at", "id")))
+    drafts = list(CatalogDraft.objects.order_by("kind", "name", "id"))
+    draft_columns = [name, Column("Тип карточки", 20), state, Column("Тип сырья", 16),
+        Column("Базовая единица", 16), Column("Потери: ввод", 18), Column("Фасовка: ввод", 20),
+        Column("Цена упаковки: ввод", 23), Column("Дата цены: ввод", 20), Column("ID поставщика", 38),
+        Column("Нулевая цена подтверждена", 20), Column("Отпускная цена: ввод", 23),
+        Column("Зелёный порог: ввод", 22), Column("Оранжевый порог: ввод", 22),
+        Column("Выход: ввод", 22), Column("Единица выхода", 16), Column("Версия", 12),
+        Column("Создано", 23), Column("Изменено", 23), Column("Опубликовано", 23),
+        Column("ID опубликованной карточки", 38), ident]
+    draft_rows, draft_lines, sources = [], [], []
+    for draft in drafts:
+        payload = draft.payload
+        draft_rows.append((draft.name, draft.get_kind_display(), "Опубликован" if draft.is_published else "Черновик",
+            payload.get("ingredient_kind", ""), payload.get("unit", ""), payload.get("loss", ""),
+            payload.get("pack_size", ""), payload.get("pack_price", ""), payload.get("price_date", ""),
+            payload.get("supplier", ""), "Да" if payload.get("zero_price_confirmed") else "Нет",
+            payload.get("base_price", ""), payload.get("green_override", ""), payload.get("orange_override", ""),
+            payload.get("output_quantity", ""), payload.get("output_unit", ""), draft.version,
+            draft.created_at, draft.updated_at, draft.published_at,
+            str(draft.published_object_id) if draft.published_object_id else "", str(draft.pk)))
+        for position, line in enumerate(payload.get("lines", []), 1):
+            draft_lines.append((draft.name, draft.get_kind_display(), position, line["label"], line["component"],
+                                line["quantity"], line["unit"], line["note"], str(draft.pk)))
+        sources.append((draft.name, draft.get_kind_display(), draft.get_source_display(), draft.source_text,
+                        draft.notes, str(draft.pk)))
+    report.sheet("Черновики", draft_columns, draft_rows)
+    report.sheet("Состав черновиков", [name, Column("Тип карточки", 20), Column("Строка", 10),
+        Column("Название из исходника", 40), Column("Ссылка компонента", 48), Column("Количество: ввод", 24),
+        Column("Единица: ввод", 16), Column("Заметка строки", 70), ident], draft_lines)
+    report.sheet("Исходники черновиков", [name, Column("Тип карточки", 20), Column("Источник", 16),
+        Column("Исходный текст", 110), Column("Заметки", 90), ident], sources)
     return report.bytes()

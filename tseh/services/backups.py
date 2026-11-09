@@ -24,13 +24,14 @@ from tseh.calculation import normalized
 from tseh.audit_actor import current_actor
 from tseh.calculation.purchases import aggregate_lines
 from tseh.calculation.recipes import Component, Item, Prep, RecipeGraph
-from tseh.models import (AuditEntry, Dish, DishLine, DomainState, GlobalSettings,
+from tseh.models import (AuditEntry, CatalogDraft, Dish, DishLine, DomainState, GlobalSettings,
     Ingredient, Operation, Preparation, PreparationLine, Price, PriceApplication,
     Purchase, PurchaseLine, SETTINGS_ID, Supplier, UnallocatedDelivery)
 from tseh.models.transfer import RestoreSession
+from tseh.catalog_draft_payload import text_value, validate_draft_payload
 
 FORMAT = "tseh-backup"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MAX_BACKUP_BYTES = 25 * 1024 * 1024
 MAX_RECORDS = 50_000
 MAX_JSON_DEPTH = 32
@@ -41,8 +42,9 @@ TABLES = {
     "prices": Price, "price_applications": PriceApplication, "purchases": Purchase,
     "purchase_lines": PurchaseLine, "unallocated_delivery": UnallocatedDelivery,
     "preparations": Preparation, "preparation_lines": PreparationLine,
-    "dishes": Dish, "dish_lines": DishLine, "journal": AuditEntry,
+    "dishes": Dish, "dish_lines": DishLine, "catalog_drafts": CatalogDraft, "journal": AuditEntry,
 }
+LEGACY_TABLES = set(TABLES) - {"catalog_drafts"}
 DECIMAL_RE = re.compile(r"-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?\Z")
 SAFE_AUDIT_TYPES = {model.__name__ for model in TABLES.values()} | {"DomainState"}
 FORBIDDEN_KEYS = {"password", "password_hash", "secret", "secret_key", "token", "session_key",
@@ -317,6 +319,10 @@ def _positive(value, label, *, zero=False, limit=10**12):
 
 
 def _validate_objects(tables, snapshot_at):
+    for row in tables["catalog_drafts"].values():
+        _validate_draft_object(row)
+    from .catalog_drafts import validate_draft_links
+    validate_draft_links(tables["catalog_drafts"].values())
     if len(tables["settings"]) > 1 or (tables["settings"] and SETTINGS_ID not in tables["settings"]):
         _fail("Некорректная единственная запись общих настроек.")
     for row in tables["settings"].values():
@@ -454,8 +460,46 @@ def _validate_purchases(tables):
         _fail("Цена ссылается на отсутствующую позицию в закупке.")
 
 
+def _validate_draft_object(row):
+    text_value(row.name, 160, "Название черновика", required=True)
+    text_value(row.source_text, 20000, "Исходный текст")
+    text_value(row.notes, 8000, "Заметки")
+    if row.source not in {"manual", "import"} or type(row.version) is not int or row.version < 1:
+        _fail("Некорректные источник или версия черновика.")
+    if row.payload != validate_draft_payload(row.kind, row.payload):
+        _fail("В полном черновике отсутствуют поля данных.")
+    if (row.published_object_id is None) != (row.published_at is None):
+        _fail("Некорректная квитанция публикации черновика.")
+    if row.updated_at < row.created_at or (row.published_at is not None and
+            not row.created_at <= row.published_at <= row.updated_at):
+        _fail("Некорректная последовательность дат черновика.")
+    # Publication is a historical receipt, not a live FK: the target may have
+    # been purged after publication without invalidating the original source.
+
+
+def _validate_draft_snapshot(snap):
+    fields = {field.attname: field for field in CatalogDraft._meta.concrete_fields if field.name != "id"}
+    if not isinstance(snap, dict) or set(snap) != set(fields):
+        _fail("Неполный или неизвестный исторический снимок черновика.")
+    row = CatalogDraft(**{name: _field_value(field, snap[name]) for name, field in fields.items()})
+    _validate_draft_object(row)
+
+
 def _validate_journal(tables):
     for entry in tables["journal"].values():
+        if entry.object_type == "CatalogDraft":
+            if entry.action not in {"draft_create", "draft_update", "draft_delete", "draft_publish"} or entry.source not in {"manual", "import"}:
+                _fail("Некорректное действие или источник журнала черновиков.")
+            try:
+                uuid.UUID(entry.object_id)
+            except ValueError:
+                _fail("Некорректный исторический UUID черновика.")
+            if entry.before is None and entry.after is None:
+                _fail("В записи черновика отсутствуют оба снимка.")
+            for snap in (entry.before, entry.after):
+                if snap is not None:
+                    _validate_draft_snapshot(snap)
+            continue
         if (entry.object_type not in SAFE_AUDIT_TYPES or not entry.object_id
                 or entry.action not in {"create", "update", "delete", "apply", "archive", "trash", "restore", "activate", "purge", "transfer"}):
             _fail("Некорректный тип объекта или действие журнала.")
@@ -480,7 +524,7 @@ def _validate_journal(tables):
 
 
 def _validate_snapshot(snap):
-    allowed = {field.attname for model in TABLES.values() if model is not AuditEntry for field in model._meta.concrete_fields} | {
+    allowed = {field.attname for model in TABLES.values() if model not in {AuditEntry, CatalogDraft} for field in model._meta.concrete_fields} | {
         "lines", "applications", "prices", "price", "ingredient_name", "supplier_name", "reason", "delivery_action",
         "removed_delivery", "kept_delivery", "source_purchase", "previous_delivery", "transferred_amount",
         "snapshot_at", "restored_at", "source_hash", "counts", "trash_deadlines", "dish_id",
@@ -488,7 +532,7 @@ def _validate_snapshot(snap):
     }
     if not snap or set(snap) - allowed:
         _fail("Неизвестные или отсутствующие поля исторического снимка.")
-    nullable = {field.attname for model in TABLES.values() if model is not AuditEntry
+    nullable = {field.attname for model in TABLES.values() if model not in {AuditEntry, CatalogDraft}
                 for field in model._meta.concrete_fields if field.null} | {"supplier_name"}
     for key, value in snap.items():
         if value is None:
@@ -548,7 +592,7 @@ def _validate_snapshot(snap):
             _fail("Некорректное действие с доставкой в историческом снимке.")
         elif key == "source_hash" and (not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value)):
             _fail("Некорректный отпечаток файла исторического восстановления.")
-        elif key == "counts" and (not isinstance(value, dict) or set(value) != set(TABLES)
+        elif key == "counts" and (not isinstance(value, dict) or set(value) not in (set(TABLES), LEGACY_TABLES)
                 or any(type(number) is not int or number < 0 for number in value.values())):
             _fail("Некорректные счётчики исторического восстановления.")
         elif key in {"position", "remaining_microseconds"} and (type(value) is not int or value < 0):
@@ -563,11 +607,15 @@ def validate_backup(value):
     document = _read(value)
     if set(document) != {"format", "schema_version", "snapshot_at", "data"} or document["format"] != FORMAT:
         _fail("Файл не является полным экспортом Цеха.")
-    if type(document["schema_version"]) is not int or document["schema_version"] != SCHEMA_VERSION:
+    if type(document["schema_version"]) is not int or document["schema_version"] not in {1, SCHEMA_VERSION}:
         _fail("Версия схемы JSON не поддерживается.")
     snapshot_at = _date(document["snapshot_at"], timestamp=True)
-    if not isinstance(document["data"], dict) or set(document["data"]) != set(TABLES):
+    expected_tables = LEGACY_TABLES if document["schema_version"] == 1 else set(TABLES)
+    if not isinstance(document["data"], dict) or set(document["data"]) != expected_tables:
         _fail("В JSON отсутствуют обязательные разделы или присутствуют неизвестные данные.")
+    if document["schema_version"] == 1:
+        document["schema_version"] = SCHEMA_VERSION
+        document["data"]["catalog_drafts"] = []
     if any(not isinstance(rows, list) for rows in document["data"].values()):
         _fail("Разделы данных должны быть списками.")
     if sum(len(rows) for rows in document["data"].values()) > MAX_RECORDS:
@@ -590,6 +638,13 @@ def _session(session_id, user, *, lock=False):
     obj = query.filter(pk=key, owner_id=user.pk).first()
     if obj is None or obj.expires_at <= timezone.now():
         _fail("Подготовка восстановления недоступна или истекла. Загрузите файл заново.")
+    if obj.completed_at is None and any(
+            not isinstance(document, dict) or type(document.get("schema_version")) is not int
+            or document["schema_version"] != SCHEMA_VERSION
+            for document in (obj.proposed, obj.previous)):
+        # Old files remain importable, but a prepared confirmation must retain
+        # its original hashes. Never upgrade the reviewed documents silently.
+        _fail("Подготовка создана в предыдущей версии. Загрузите исходный JSON заново.")
     return obj
 
 
@@ -690,7 +745,8 @@ def _replace(tables):
         rows = list(tables[name].values())
         if not rows:
             continue
-        dates = [field.attname for field in model._meta.concrete_fields if getattr(field, "auto_now_add", False)]
+        dates = [field.attname for field in model._meta.concrete_fields
+                 if getattr(field, "auto_now_add", False) or getattr(field, "auto_now", False)]
         saved_dates = {row.pk: {name: getattr(row, name) for name in dates} for row in rows}
         model.objects.bulk_create(rows, batch_size=500)
         if dates:

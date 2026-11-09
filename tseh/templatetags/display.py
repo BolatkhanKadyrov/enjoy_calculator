@@ -67,12 +67,14 @@ def pretty(value):
 def action_label(value):
     return {"create": "Создано", "update": "Изменено", "apply": "Цена применена", "delete": "Удалено", "transfer": "Доставка перенесена",
             "archive": "Перемещено в архив", "trash": "Перемещено в корзину", "restore": "Восстановлено",
-            "activate": "Возвращено в ассортимент", "purge": "Удалено окончательно"}.get(value, value)
+            "activate": "Возвращено в ассортимент", "purge": "Удалено окончательно",
+            "draft_create": "Черновик создан", "draft_update": "Черновик изменён",
+            "draft_delete": "Черновик удалён", "draft_publish": "Черновик опубликован"}.get(value, value)
 
 
 @register.filter
 def object_label(value):
-    return {"DomainState": "Восстановление данных", "Purchase": "Закупка", "PurchaseLine": "Строка закупки", "UnallocatedDelivery": "Нераспределённая доставка", "Supplier": "Поставщик", "Ingredient": "Ингредиент / упаковка", "Price": "Цена", "PriceApplication": "Применение цены", "Dish": "Блюдо", "Preparation": "Заготовка", "GlobalSettings": "Общие пороги"}.get(value, value)
+    return {"DomainState": "Восстановление данных", "Purchase": "Закупка", "PurchaseLine": "Строка закупки", "UnallocatedDelivery": "Нераспределённая доставка", "Supplier": "Поставщик", "Ingredient": "Ингредиент / упаковка", "Price": "Цена", "PriceApplication": "Применение цены", "Dish": "Блюдо", "Preparation": "Заготовка", "GlobalSettings": "Общие пороги", "CatalogDraft": "Черновик"}.get(value, value)
 
 
 @register.filter
@@ -80,10 +82,45 @@ def unit_label(value):
     return {"g": "г", "kg": "кг", "ml": "мл", "l": "л", "pc": "шт."}.get(value, value)
 
 
+def _draft_audit_rows(value):
+    """Draft text may be incomplete or nonnumeric; never coerce it into a cost."""
+    kind = {"ingredient": "Сырьё и упаковка", "preparation": "Заготовка", "dish": "Блюдо"}[value["kind"]]
+    labels = {"unit": "Базовая единица", "ingredient_kind": "Тип позиции", "loss": "Первичные потери, %",
+              "supplier": "Поставщик", "price_date": "Дата цены", "pack_size": "Содержимое упаковки",
+              "pack_price": "Цена упаковки, ₸", "zero_price_confirmed": "Нулевая цена подтверждена",
+              "base_price": "Отпускная цена, ₸", "green_override": "Зелёный порог, %",
+              "orange_override": "Оранжевый порог, %", "output_quantity": "Выход", "output_unit": "Единица выхода"}
+    rows = [("Название", value.get("name", "—")), ("Тип черновика", kind)]
+    for key, item in value["payload"].items():
+        if key == "lines":
+            lines = []
+            for index, line in enumerate(item, 1):
+                amount = line.get("quantity") or "Количество не указано"
+                unit = unit_label(line.get("unit", "")) or "единица не указана"
+                text = f"{index}. {line.get('label') or 'Компонент не указан'}: {amount} {unit}"
+                if line.get("note"):
+                    text += "\n" + line["note"]
+                lines.append(text)
+            rows.append(("Состав черновика", "\n\n".join(lines) or "Не указан"))
+        elif key in labels:
+            if isinstance(item, bool):
+                item = "Да" if item else "Нет"
+            elif key in {"unit", "output_unit"}:
+                item = unit_label(item)
+            elif key == "ingredient_kind":
+                item = {"ingredient": "Сырьё", "packaging": "Упаковка"}.get(item, item)
+            rows.append((labels[key], item or "Не указано"))
+    rows.extend([("Заметки", value.get("notes") or "—"),
+                 ("Исходный текст", value.get("source_text") or "—")])
+    return rows
+
+
 @register.filter
 def audit_rows(value):
     if not value:
         return []
+    if isinstance(value.get("payload"), dict) and value.get("kind") in {"ingredient", "preparation", "dish"}:
+        return _draft_audit_rows(value)
     labels = {"status": "Состояние", "archived_at": "Последнее помещение в архив", "trashed_at": "Последнее помещение в корзину", "purge_at": "Срок удаления",
               "snapshot_at": "Время снимка", "restored_at": "Восстановлено", "historical_trashed_at": "Историческая дата корзины", "previous_purge_at": "Прежний срок удаления",
               "prices": "Сохранённые цены", "trash_deadlines": "Восстановленные сроки корзины", "counts": "Количество записей",
@@ -120,7 +157,7 @@ def audit_rows(value):
             names = {"settings": "Настройки", "suppliers": "Поставщики", "ingredients": "Сырьё и упаковка", "prices": "Цены",
                 "price_applications": "Применения цен", "purchases": "Закупки", "purchase_lines": "Строки закупок",
                 "unallocated_delivery": "Доставка", "preparations": "Заготовки", "preparation_lines": "Строки заготовок",
-                "dishes": "Блюда", "dish_lines": "Строки блюд", "journal": "Журнал"}
+                "dishes": "Блюда", "dish_lines": "Строки блюд", "catalog_drafts": "Черновики", "journal": "Журнал"}
             item = "\n".join(f"{names.get(name, name)}: {count}" for name, count in item.items())
         elif key == "lines":
             if item and "pack_size" in item[0]:

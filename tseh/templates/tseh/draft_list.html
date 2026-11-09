@@ -1,0 +1,11 @@
+{% extends 'tseh/draft_base.html' %}
+{% block title %}Черновики · Цех{% endblock %}
+{% block content %}<div class="draft-page">
+<header class="page-heading"><div><h1>Черновики</h1><p>Сохранённые рецептуры и сырьё, которые ещё нужно уточнить. До публикации они не участвуют в расчётах.</p></div></header>
+<nav class="draft-kind-counts" aria-label="Черновики по типу">{% for item in kind_counts %}<a href="?kind={{ item.kind }}&amp;state=draft">{{ item.label }} <strong>{{ item.count }}</strong></a>{% endfor %}</nav>
+{% if create_kinds %}<div class="draft-create-actions"><span>Новый черновик:</span>{% for item in create_kinds %}<a class="button secondary" href="{% url 'draft-create' item.kind %}">{% include 'tseh/_icon_plus.html' %}<span class="button-label">{{ item.label }}</span></a>{% endfor %}</div>{% endif %}
+<section class="panel padded">{% include 'tseh/_list_controls.html' %}
+{% if rows %}<div class="table-wrap draft-table"><table><thead><tr><th>Название</th><th>Тип</th><th>Состояние</th><th>Изменён</th></tr></thead><tbody>{% for item in rows %}<tr><td data-label="Название"><a class="item-link" href="{% url 'draft-detail' item.pk %}">{{ item.name }}</a>{% if item.notes %}<small class="sub">{{ item.notes|truncatechars:150 }}</small>{% endif %}</td><td data-label="Тип">{{ item.get_kind_display }}</td><td data-label="Состояние"><span class="draft-state">{% if item.is_published %}Опубликован{% else %}Черновик{% endif %}</span></td><td data-label="Изменён">{{ item.updated_at|date:'d.m.Y H:i' }}</td></tr>{% endfor %}</tbody></table></div>
+{% elif list_active %}<div class="empty"><h2>Подходящих черновиков нет</h2><p>Измените название, тип или состояние.</p><a class="button link" href="{% url 'draft-list' %}"><span class="button-label">Сбросить фильтры</span></a></div>
+{% else %}<div class="empty"><h2>Черновиков пока нет</h2><p>Здесь можно сохранять рецептуры без цен, с неизвестным выходом или неполным составом. Заполненные карточки публикуются после проверки.</p></div>{% endif %}
+{% include 'tseh/_pagination.html' %}</section></div>{% endblock %}

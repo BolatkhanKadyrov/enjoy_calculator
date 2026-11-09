@@ -1,0 +1,4 @@
+<div class="draft-edit-line" id="draft-line-{{ line.prefix }}" data-prefix="{{ line.prefix }}" {% if line.DELETE.value %}hidden{% endif %}>
+{{ line.non_field_errors }}{{ line.DELETE }}
+<div class="draft-line-heading"><h3>Компонент <span data-line-number>{{ forloop.counter }}</span></h3><button type="button" class="button danger" data-remove-draft-line hidden><span class="button-label">Убрать строку</span></button><noscript><label><input type="checkbox" name="{{ line.DELETE.html_name }}" value="on"> Удалить строку при сохранении</label></noscript></div>
+<div class="draft-line-fields">{% include 'tseh/_field.html' with field=line.component field_class='draft-component' %}{% include 'tseh/_field.html' with field=line.quantity %}{% include 'tseh/_field.html' with field=line.unit %}{% include 'tseh/_field.html' with field=line.label field_class='draft-label' %}{% include 'tseh/_field.html' with field=line.note field_class='draft-line-note' %}</div></div>

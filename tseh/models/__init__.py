@@ -7,6 +7,7 @@ from django.db.models import Q
 from .transfer import RestoreSession
 from .security import LoginThrottle
 from .accounts import AccountAccess, AccountEvent
+from .catalog_drafts import CatalogDraft
 
 CATALOG_STATUSES = [("active", "В справочнике"), ("trashed", "В корзине")]
 

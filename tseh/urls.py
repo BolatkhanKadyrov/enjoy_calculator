@@ -1,9 +1,15 @@
 from django.urls import path
 from tseh import views
 from tseh import price_views, purchase_views, scenario_views, lifecycle_views, transfer_views
-from tseh import employee_views
+from tseh import employee_views, draft_views
 
 urlpatterns = [
+    path("drafts/", draft_views.draft_list, name="draft-list"),
+    path("drafts/new/<str:kind>/", draft_views.draft_create, name="draft-create"),
+    path("drafts/<uuid:pk>/", draft_views.draft_detail, name="draft-detail"),
+    path("drafts/<uuid:pk>/edit/", draft_views.draft_edit, name="draft-edit"),
+    path("drafts/<uuid:pk>/preview/", draft_views.draft_preview, name="draft-preview"),
+    path("drafts/<uuid:pk>/delete/", draft_views.draft_delete, name="draft-delete"),
     path("no-access/", views.access_unavailable, name="access-unavailable"),
     path("employees/", employee_views.employee_list, name="employee-list"),
     path("employees/new/", employee_views.employee_create, name="employee-create"),

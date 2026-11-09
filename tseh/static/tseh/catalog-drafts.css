@@ -1,0 +1,57 @@
+.draft-page { min-width: 0; }
+.draft-page .panel { margin-bottom: 24px; }
+.draft-page .page-heading p { max-width: 74ch; }
+.draft-page .page-heading h1 { overflow-wrap: anywhere; }
+.draft-kind-counts, .draft-create-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 0 0 24px; }
+.draft-kind-counts a { display: inline-flex; gap: 12px; align-items: center; min-height: 44px; text-underline-offset: 3px; }
+.draft-kind-counts strong { font-variant-numeric: tabular-nums; }
+.draft-state { display: inline-block; background: var(--color-neutral-soft, #f0f2ec); padding: 4px 10px; border-radius: 4px; font-size: 13px; color: var(--color-text); }
+.draft-save-state { color: var(--color-muted); margin: 0 0 24px; max-width: 75ch; }
+.draft-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 32px; margin: 24px 0 0; }
+.draft-facts dt { color: var(--color-muted); font-size: 13px; margin-bottom: 6px; }
+.draft-facts dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.draft-missing { color: var(--color-muted); }
+.draft-preserve, .draft-source pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; max-width: 78ch; }
+.draft-source summary, .draft-page details>summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+.draft-source pre { margin: 24px 0 0; }
+.draft-read-lines { list-style: none; margin: 0; padding: 0; }
+.draft-read-lines li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 170px); gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--color-border); }
+.draft-read-lines li:last-child { border-bottom: 0; padding-bottom: 0; }
+.draft-read-lines p { margin: 6px 0 0; overflow-wrap: anywhere; }
+.draft-read-lines strong { overflow-wrap: anywhere; }
+.draft-quantity { font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.draft-quantity span { display: block; color: var(--color-muted); font-size: 13px; margin-top: 6px; }
+.draft-next-step { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin: 32px 0; }
+.draft-next-step p { max-width: 65ch; margin-bottom: 0; }
+.draft-delete-link { color: var(--color-danger); }
+.draft-edit-line { border-top: 1px solid var(--color-border); padding-top: 24px; margin-top: 24px; }
+.draft-edit-line[hidden] { display: none; }
+.draft-line-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.draft-line-heading h3 { margin: 0; }
+.draft-line-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) minmax(100px, .65fr); gap: 20px; align-items: start; }
+.draft-label { grid-column: 1; }
+.draft-line-note { grid-column: 2 / -1; }
+.draft-checkbox { margin-top: 24px; }
+.draft-checkbox label { display: flex; align-items: flex-start; gap: 12px; max-width: 75ch; cursor: pointer; }
+.draft-checkbox input { flex: 0 0 auto; width: 20px; height: 20px; margin: 2px 0 0; }
+.draft-checkbox .errorlist { margin-top: 12px; }
+.draft-details-fields { margin-top: 24px; }
+.draft-issues ul { padding-left: 24px; max-width: 90ch; }
+.draft-issues li { margin: 12px 0; overflow-wrap: anywhere; }
+.draft-table td { overflow-wrap: anywhere; }
+.draft-table td:first-child { max-width: 36rem; }
+.catalog-draft-link { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin: 0 0 24px; }
+@media (max-width: 760px) {
+  .draft-facts, .draft-line-fields { grid-template-columns: minmax(0, 1fr); }
+  .draft-label, .draft-line-note { grid-column: auto; }
+  .draft-read-lines li { grid-template-columns: minmax(0, 1fr) 90px; gap: 16px; }
+  .draft-kind-counts, .draft-create-actions { gap: 12px 20px; }
+  .draft-create-actions>span { flex-basis: 100%; }
+  .draft-table { overflow: visible; }
+  .draft-table table, .draft-table tbody, .draft-table tr, .draft-table td { display: block; width: 100%; min-width: 0; }
+  .draft-table thead { display: none; }
+  .draft-table tr { padding: 20px 0; border-bottom: 1px solid var(--color-border); }
+  .draft-table tr:last-child { border-bottom: 0; }
+  .draft-table td { border: 0; padding: 8px 0; }
+  .draft-table td::before { content: attr(data-label); display: block; color: var(--color-muted); font-size: 13px; margin-bottom: 5px; }
+}

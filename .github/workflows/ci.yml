@@ -73,13 +73,14 @@ jobs:
           python manage.py makemigrations --check --dry-run
       - name: Run complete Python suite
         run: python -m pytest -q
-      - name: Run five JavaScript suites
+      - name: Run six JavaScript suites
         run: |
           node tests/test_units.js
           node tests/test_recipe_units.js
           node tests/test_component_search.js
           node tests/test_draft_store.js
           node tests/test_draft_editor.js
+          node tests/test_catalog_draft_store.js
 
   container:
     name: Production image on Linux

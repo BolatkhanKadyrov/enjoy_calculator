@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from tseh.models import Supplier
 
 KINDS = [("Supplier", "Поставщики"), ("Ingredient", "Ингредиенты / упаковка"), ("Price", "Цены"),
-         ("PriceApplication", "Применения цен"), ("Purchase", "Закупки"), ("PurchaseLine", "Строки закупок"), ("UnallocatedDelivery", "Доставка"), ("Dish", "Блюда"), ("Preparation", "Заготовки"), ("GlobalSettings", "Пороги"), ("DomainState", "Восстановление данных")]
+         ("PriceApplication", "Применения цен"), ("Purchase", "Закупки"), ("PurchaseLine", "Строки закупок"), ("UnallocatedDelivery", "Доставка"), ("Dish", "Блюда"), ("Preparation", "Заготовки"), ("GlobalSettings", "Пороги"), ("CatalogDraft", "Черновики"), ("DomainState", "Восстановление данных")]
 UNITS = [("kg", "кг"), ("l", "л"), ("pc", "шт.")]
 SORT_LABELS = {"name": "Название: А–Я", "-name": "Название: Я–А", "cost": "Себестоимость: по возрастанию",
     "-cost": "Себестоимость: по убыванию", "price": "Цена: по возрастанию", "-price": "Цена: по убыванию",
