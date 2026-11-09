@@ -408,4 +408,3 @@ def test_admin_list_hides_protected_accounts_and_their_current_or_historical_eve
     assert 'SECRET-' not in content
     owner_view = owner_browser.get(reverse('employee-list'), {'status': 'all'})
     assert 'SECRET-owner-history' in owner_view.content.decode()
-
